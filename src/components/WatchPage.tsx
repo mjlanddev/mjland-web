@@ -29,12 +29,12 @@ import { LoadingSpinner } from './LoadingSpinner';
 import { Helmet } from 'react-helmet-async';
 
 const defaultServers = [
-  { name: "VidLink", tag: "FAST â€¢ HD", lang: "English", movie: "https://vidlink.pro/movie/{id}", tv: "https://vidlink.pro/tv/{id}/{season}/{episode}" },
-  { name: "Zxcstream", tag: "MULTI â€¢ PREFERRED", lang: "Multi", movie: "https://zxcstream.xyz/player/movie/{id}", tv: "https://zxcstream.xyz/player/tv/{id}/{season}/{episode}" },
-  { name: "RGSHOWS", tag: "MULTI â€¢ INDIAN", lang: "Multi", movie: "https://vidsrc.wtf/api/2/movie/?id={id}", tv: "https://vidsrc.wtf/api/1/tv/?id={id}&s={season}&e={episode}/" },
-  { name: "2Embed", tag: "AUTO â€¢ STREAM", lang: "English", movie: "https://www.2embed.cc/embed/{id}", tv: "https://www.2embed.cc/embedtv/{id}?s={season}&epi={episode}" },
-  { name: "SmashyStream", tag: "FAST â€¢ HD", lang: "English", movie: "https://embed.smashystream.com/playere.php?tmdb={id}", tv: "https://embed.smashystream.com/playere.php?tmdb={id}&season={season}&episode={episode}" },
-  { name: "FREMBED", tag: "FRENCH â€¢ VF", lang: "French", movie: "https://frembed.work/api/film.php?id={id}", tv: "https://frembed.work/api/serie.php?id={id}&sa={season}&epi={episode}" }
+  { name: "VidLink", tag: "FAST • HD", lang: "English", movie: "https://vidlink.pro/movie/{id}", tv: "https://vidlink.pro/tv/{id}/{season}/{episode}" },
+  { name: "Zxcstream", tag: "MULTI • PREFERRED", lang: "Multi", movie: "https://zxcstream.xyz/player/movie/{id}", tv: "https://zxcstream.xyz/player/tv/{id}/{season}/{episode}" },
+  { name: "RGSHOWS", tag: "MULTI • INDIAN", lang: "Multi", movie: "https://vidsrc.wtf/api/2/movie/?id={id}", tv: "https://vidsrc.wtf/api/1/tv/?id={id}&s={season}&e={episode}/" },
+  { name: "2Embed", tag: "AUTO • STREAM", lang: "English", movie: "https://www.2embed.cc/embed/{id}", tv: "https://www.2embed.cc/embedtv/{id}?s={season}&epi={episode}" },
+  { name: "SmashyStream", tag: "FAST • HD", lang: "English", movie: "https://embed.smashystream.com/playere.php?tmdb={id}", tv: "https://embed.smashystream.com/playere.php?tmdb={id}&season={season}&episode={episode}" },
+  { name: "FREMBED", tag: "FRENCH • VF", lang: "French", movie: "https://frembed.work/api/film.php?id={id}", tv: "https://frembed.work/api/serie.php?id={id}&sa={season}&epi={episode}" }
 ];
 
 let parsedServers = defaultServers;
@@ -506,7 +506,7 @@ export const WatchPage = () => {
                     <div className="flex flex-col text-left">
                       <span className="text-sm font-bold text-white leading-none">{title}</span>
                       <span className="text-[11px] text-[#a3a3a3] mt-0.5">
-                        {releaseYear} â€¢ {details.vote_average?.toFixed(1)} â˜… IMDb
+                        {releaseYear} • {details.vote_average?.toFixed(1)} ★ IMDb
                       </span>
                     </div>
                   </button>
@@ -762,7 +762,7 @@ export const WatchPage = () => {
                         </h4>
                         <span className="text-[10px] text-[#a3a3a3] flex items-center gap-1 mt-1">
                           <Star className="w-3 h-3 text-yellow-500 fill-current" />
-                          {movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A'} â€¢ {movie.release_date?.split('-')[0] || ''}
+                          {movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A'} • {movie.release_date?.split('-')[0] || ''}
                         </span>
                       </div>
                     </div>

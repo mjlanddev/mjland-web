@@ -36,8 +36,8 @@ export const LazyImage: React.FC<LazyImageProps> = ({
         if (props.onError) props.onError(e);
       }}
       className={twMerge(
-        'transition-all duration-300 ease-out',
-        loaded ? 'opacity-100 blur-0' : 'opacity-0 blur-md',
+        'transition-opacity duration-300 ease-out',
+        loaded ? 'opacity-100' : 'opacity-0',
         className
       )}
       loading={loading}

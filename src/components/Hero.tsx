@@ -338,7 +338,7 @@ export const Hero = ({ movies }: HeroProps) => {
                     {genres.slice(0, 3).map((genre, idx) => (
                       <React.Fragment key={genre}>
                         <span>{genre}</span>
-                        {idx < genres.slice(0, 3).length - 1 && <span className="text-white/40">â€¢</span>}
+                        {idx < genres.slice(0, 3).length - 1 && <span className="text-white/40">•</span>}
                       </React.Fragment>
                     ))}
                   </div>
@@ -360,7 +360,7 @@ export const Hero = ({ movies }: HeroProps) => {
                 {genres.map((genre, idx) => (
                   <React.Fragment key={genre}>
                     <span>{genre}</span>
-                    {idx < genres.length - 1 && <span className="text-white/40">â€¢</span>}
+                    {idx < genres.length - 1 && <span className="text-white/40">•</span>}
                   </React.Fragment>
                 ))}
               </div>

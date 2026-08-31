@@ -220,7 +220,7 @@ export const MovieCard = memo<MovieCardProps>(({ movie, className = "", badge, b
           </h3>
           {type === 'tv' && movie.season_number && movie.episode_number && (
             <span className="text-[10px] font-bold text-accent/80 truncate block">
-              S{movie.season_number} E{movie.episode_number} {movie.episode_name ? `â€¢ ${movie.episode_name}` : ''}
+              S{movie.season_number} E{movie.episode_number} {movie.episode_name ? `• ${movie.episode_name}` : ''}
             </span>
           )}
         </div>
