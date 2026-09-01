@@ -27,13 +27,7 @@
   <a href="https://github.com/mjlanddev/mjland-web/network/members"><img src="https://img.shields.io/github/forks/mjlanddev/mjland-web?style=flat-square&color=blue"></a>
 </p>
 
-<hr>
 
-## ⚠️ Project Discontinued
-
-**Due to legal reasons, all public instances and updates for this application have been stopped.** Thank you to everyone who supported this project.
-
-<hr>
 
 ## 📸 Screenshots
 
