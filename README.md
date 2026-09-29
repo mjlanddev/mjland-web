@@ -39,9 +39,9 @@
       <td align="center"><b>Search</b></td>
     </tr>
     <tr>
-      <td><img width="280" alt="Home" src="https://github.com/user-attachments/assets/c059bac4-cddc-461a-8850-5ced494b4ac3" /></td>
-      <td><img width="280" alt="Details" src="https://github.com/user-attachments/assets/7f5da619-1ae1-4db5-896c-468ec2ba7b05" /></td>
-      <td><img width="280" alt="Search" src="https://github.com/user-attachments/assets/a9143dfa-88a8-4f85-823b-2d81073c2a93" /></td>
+      <td><img width="400" alt="Home" src="https://github.com/user-attachments/assets/558d6d9a-a9ce-4d1c-858f-362663129df6" /></td>
+      <td><img width="400" alt="Details" src="https://github.com/user-attachments/assets/12999c4c-cd50-4841-b95c-3a0075493b8c" /></td>
+      <td><img width="400" alt="Search" src="https://github.com/user-attachments/assets/6889e7b4-4e09-4bce-a807-add2df6fc54d" /></td>
     </tr>
   </table>
 </div>
