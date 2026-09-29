@@ -6,7 +6,7 @@ import { MovieRow } from './MovieRow';
 import { motion } from 'motion/react';
 import { ArrowLeft01Icon as ChevronLeft } from 'hugeicons-react';
 import { LoadingSpinner } from './LoadingSpinner';
-
+import { SEO } from './SeoComponent';
 
 import { LazyImage } from './LazyImage';
 import { FadeSection } from './FadeSection';
@@ -36,11 +36,11 @@ export const LanguageDetails = () => {
       try {
         const apiGenres = await tmdbService.getGenres('movie');
         const genres = apiGenres.slice(0, 6);
-        
+
         const allLangs = await tmdbService.getLanguages();
         const langObj = allLangs.find((l: any) => l.iso_639_1 === code);
         if (langObj) setLanguageName(langObj.english_name);
-        
+
         const [movieData, tvData, ...genreResults] = await Promise.all([
           tmdbService.getMoviesByLanguage(code),
           tmdbService.getTVByLanguage(code),
@@ -50,10 +50,10 @@ export const LanguageDetails = () => {
             return [...m, ...t].sort((a, b) => b.popularity - a.popularity).slice(0, 20);
           })
         ]);
-        
+
         setMovies(movieData);
         setTVShows(tvData);
-        
+
         if (movieData.length > 0) {
           setBackdrop(getImageUrl(movieData[0].backdrop_path || movieData[0].poster_path, 'original'));
         } else if (tvData.length > 0) {
@@ -80,9 +80,13 @@ export const LanguageDetails = () => {
   }
 
   return (
-    <div className="min-h-screen bg-bg">
+    <div className="min-h-screen bg-black">
+      <SEO
+        title={languageName ? `${languageName} Movies & TV Shows` : 'Language Details'}
+        description={languageName ? `Explore the best of ${languageName} cinema and television.` : 'Explore movies and TV shows by language.'}
+      />
       <div className="relative h-[45vh] md:h-[60vh] w-full overflow-hidden">
-        <motion.div 
+        <motion.div
           initial={{ scale: 1.08, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
@@ -94,8 +98,8 @@ export const LanguageDetails = () => {
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/50 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-bg via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-transparent" />
         </motion.div>
 
         <div className="absolute top-0 left-0 w-full px-4 md:px-6 pt-6 md:pt-8 z-20">
@@ -104,7 +108,8 @@ export const LanguageDetails = () => {
             animate={{ opacity: 1, x: 0 }}
             whileHover={{ x: -4 }}
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-white/80 hover:text-white transition-colors group w-fit anim-btn bg-black/40 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10"
+            className="flex items-center gap-2 text-white/80 hover:text-white transition-colors group w-fit btn-glass-beveled px-4 py-2 rounded-full cursor-pointer"
+            aria-label="Go back"
           >
             <ChevronLeft className="w-5 h-5 text-white" />
             <span className="text-xs font-bold uppercase tracking-wider">Back</span>
@@ -116,7 +121,7 @@ export const LanguageDetails = () => {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="text-4xl md:text-7xl lg:text-8xl font-black text-white tracking-tighter mb-2 md:mb-4 drop-shadow-2xl"
+            className="text-4xl md:text-7xl lg:text-8xl font-black text-white tracking-tighter mb-2 md:mb-4 drop-shadow-2xl text-balance"
           >
             {languageName}
           </motion.h1>
@@ -125,7 +130,7 @@ export const LanguageDetails = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.5 }}
-              className="text-xs sm:text-sm md:text-lg text-white/70 max-w-2xl font-medium line-clamp-2 md:line-clamp-none leading-relaxed drop-shadow"
+              className="text-xs sm:text-sm md:text-lg text-white/70 max-w-2xl font-medium line-clamp-2 md:line-clamp-none leading-relaxed drop-shadow text-pretty"
             >
               Explore the best of {languageName} cinema and television, from blockbuster movies to trending series.
             </motion.p>
@@ -143,7 +148,7 @@ export const LanguageDetails = () => {
             />
           </FadeSection>
         )}
-        
+
         {tvShows.length > 0 && (
           <FadeSection>
             <MovieRow

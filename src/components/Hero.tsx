@@ -1,12 +1,13 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
-import { 
-  PlayIcon as PlayRegular, 
-  PauseIcon as PauseRegular, 
-  Add01Icon as AddRegular, 
-  VolumeHighIcon as Speaker2Regular, 
-  VolumeOffIcon as SpeakerOffRegular, 
-  ArrowRight01Icon as ChevronRightRegular, 
-  CheckmarkCircle02Icon as CheckmarkRegular 
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  PlayIcon as PlayRegular,
+  PauseIcon as PauseRegular,
+  Add01Icon as AddRegular,
+  VolumeHighIcon as Speaker2Regular,
+  VolumeOffIcon as SpeakerOffRegular,
+  ArrowRight01Icon as ChevronRightRegular,
+  CheckmarkCircle02Icon as CheckmarkRegular,
+  InformationCircleIcon as InfoRegular
 } from 'hugeicons-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
@@ -49,7 +50,7 @@ export const Hero = ({ movies }: HeroProps) => {
   const [language, setLanguage] = useState<string>('English');
   const [isInWatchlist, setIsInWatchlist] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  
+
   const playerRef = useRef<any>(null);
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const videoTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -93,8 +94,8 @@ export const Hero = ({ movies }: HeroProps) => {
     const handleScroll = () => {
       if (!heroRef.current) return;
       const rect = heroRef.current.getBoundingClientRect();
-      const isOffScreen = rect.bottom < 200; 
-      
+      const isOffScreen = rect.bottom < 200;
+
       if (isOffScreen && !isPaused) {
         setIsPaused(true);
         if (playerRef.current && playerRef.current.pauseVideo) {
@@ -178,10 +179,10 @@ export const Hero = ({ movies }: HeroProps) => {
       try {
         setImageLoaded(false);
         setShowVideo(false);
-        const details = currentMovie.media_type === 'tv' 
+        const details = currentMovie.media_type === 'tv'
           ? await tmdbService.getTVDetails(currentMovie.id)
           : await tmdbService.getMovieDetails(currentMovie.id);
-        
+
         const logo = details.images?.logos?.find((l: any) => l.iso_639_1 === 'en') || details.images?.logos?.[0];
         setLogoUrl(logo ? getImageUrl(logo.file_path, 'original') : null);
 
@@ -219,14 +220,14 @@ export const Hero = ({ movies }: HeroProps) => {
   useEffect(() => {
     if (imageLoaded) {
       if (videoTimerRef.current) clearTimeout(videoTimerRef.current);
-      
+
       const isMobile = window.innerWidth < 768;
       const interval = isMobile ? 4000 : 10000;
 
       if (videoKey && !isMobile) {
         videoTimerRef.current = setTimeout(() => {
           initPlayer(videoKey);
-          
+
           setTimeout(() => {
             if (playerRef.current && playerRef.current.getPlayerState() !== 1) {
               nextSlide();
@@ -267,9 +268,9 @@ export const Hero = ({ movies }: HeroProps) => {
   if (!currentMovie) return null;
 
   return (
-    <section 
-      ref={heroRef} 
-      className="relative h-[65vh] md:h-[85vh] min-h-[480px] md:min-h-[640px] max-h-[880px] w-full overflow-hidden bg-bg"
+    <section
+      ref={heroRef}
+      className="relative h-[75vh] md:h-[85vh] min-h-[460px] md:min-h-[500px] w-full overflow-hidden bg-black rounded-b-3xl md:rounded-3xl md:mx-auto md:max-w-[1600px] md:mt-3 md:border border-white/10 shadow-[0_24px_64px_rgba(0,0,0,0.85)]"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -292,15 +293,15 @@ export const Hero = ({ movies }: HeroProps) => {
           />
 
           <div className={`absolute inset-0 w-full h-full pointer-events-none overflow-hidden transition-opacity duration-300 z-0 ${showVideo && !isPaused ? 'opacity-100' : 'opacity-0'}`}>
-            <div 
-              ref={videoContainerRef} 
-              className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full [&>iframe]:object-cover [&>iframe]:scale-125 md:[&>iframe]:scale-110 [&>iframe]:pointer-events-none" 
+            <div
+              ref={videoContainerRef}
+              className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full [&>iframe]:object-cover [&>iframe]:scale-125 md:[&>iframe]:scale-110 [&>iframe]:pointer-events-none"
             />
           </div>
 
-          <div className="absolute inset-0 bg-gradient-to-b from-bg/80 via-transparent to-bg z-10" />
-          <div className="absolute inset-0 bg-gradient-to-r from-bg/60 via-bg/20 to-transparent md:w-3/5 z-10" />
-          <div className="absolute inset-0 bg-black/40 md:bg-black/20 z-10" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black z-10" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent md:w-3/5 z-10" />
+          <div className="absolute inset-0 bg-black/30 md:bg-black/10 z-10" />
 
           <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 md:hidden flex items-center justify-center">
             <span className="text-xl font-black tracking-tighter text-white drop-shadow-2xl">
@@ -308,93 +309,122 @@ export const Hero = ({ movies }: HeroProps) => {
             </span>
           </div>
 
-          <div className="absolute inset-0 flex flex-col justify-end px-4 md:px-8 lg:px-12 pt-16 md:pt-8 pb-8 md:pb-24 max-w-2xl lg:max-w-3xl z-20">
+          <div className="absolute inset-0 flex flex-col justify-end px-4 md:px-10 lg:px-14 pb-8 md:pb-14 max-w-xl lg:max-w-2xl z-20">
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
               className="flex flex-col items-center md:items-start text-center md:text-left"
             >
-              <div className="mb-2 md:mb-4 flex items-end justify-center md:justify-start w-full">
+              <div className="mb-2 md:mb-3 flex items-end justify-center md:justify-start w-full">
                 {logoUrl ? (
-                  <LazyImage src={logoUrl} alt="Logo" className="max-h-[85px] md:max-h-[130px] max-w-[240px] md:max-w-[380px] object-contain drop-shadow-2xl" referrerPolicy="no-referrer" />
+                  <LazyImage src={logoUrl} alt="Logo" className="max-h-[85px] md:max-h-[120px] max-w-[240px] md:max-w-[360px] object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.9)]" referrerPolicy="no-referrer" />
                 ) : (
-                  <h1 className="text-3xl md:text-5xl font-black tracking-tighter uppercase italic text-white drop-shadow-2xl">
+                  <h1 className="text-3xl md:text-5xl font-black tracking-tighter uppercase italic text-white drop-shadow-[0_6px_20px_rgba(0,0,0,0.9)] text-balance">
                     {currentMovie.title || currentMovie.name}
                   </h1>
                 )}
               </div>
 
               <div className="md:hidden flex flex-col items-center gap-2 mb-3 w-full">
-                <div className="flex items-center justify-center flex-wrap gap-2.5 text-xs font-semibold text-white/90">
-                  <div className="flex items-center gap-2">
-                    <ImdbBadge rating={currentMovie.vote_average} />
-                    <MpaaBadge rating={parentalRating} />
-                  </div>
-                </div>
-                
                 <div className="flex items-center justify-center flex-wrap gap-2 text-xs font-semibold text-white/90">
-                  <div className="flex items-center gap-2">
-                    {genres.slice(0, 3).map((genre, idx) => (
-                      <React.Fragment key={genre}>
-                        <span>{genre}</span>
-                        {idx < genres.slice(0, 3).length - 1 && <span className="text-white/40">•</span>}
-                      </React.Fragment>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <p className="text-[12px] md:text-[13px] font-medium text-[#a3a3a3] mb-4 leading-snug max-w-lg line-clamp-3 drop-shadow-lg text-center md:text-left px-2 md:px-0">
-                {currentMovie.overview}
-              </p>
-
-              <div className="hidden md:flex items-center gap-3 text-xs font-bold text-white mb-3">
-                <div className="flex items-center gap-2">
                   <ImdbBadge rating={currentMovie.vote_average} />
                   <MpaaBadge rating={parentalRating} />
+                  {(currentMovie.release_date || currentMovie.first_air_date) && (
+                    <>
+                      <span className="text-white/40">•</span>
+                      <span className="tabular-nums text-white/80">
+                        {new Date(currentMovie.release_date || currentMovie.first_air_date).getFullYear()}
+                      </span>
+                    </>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-center flex-wrap gap-1.5 text-xs font-semibold text-white/90">
+                  {genres.slice(0, 3).map((genre) => (
+                    <span key={genre} className="badge-glass px-2 py-0.5 rounded-full text-[10px]">{genre}</span>
+                  ))}
                 </div>
               </div>
 
-              <div className="hidden md:flex items-center gap-2 text-xs font-bold mb-6 text-white drop-shadow-md">
-                {genres.map((genre, idx) => (
-                  <React.Fragment key={genre}>
-                    <span>{genre}</span>
-                    {idx < genres.length - 1 && <span className="text-white/40">•</span>}
-                  </React.Fragment>
+              <div className="hidden md:flex items-center gap-2.5 text-sm font-semibold text-white mb-3">
+                <ImdbBadge rating={currentMovie.vote_average} />
+                <MpaaBadge rating={parentalRating} />
+                {(currentMovie.release_date || currentMovie.first_air_date) && (
+                  <>
+                    <span className="text-white/40">•</span>
+                    <span className="tabular-nums text-white/80">
+                      {new Date(currentMovie.release_date || currentMovie.first_air_date).getFullYear()}
+                    </span>
+                  </>
+                )}
+                {language && (
+                  <>
+                    <span className="text-white/40">•</span>
+                    <span className="text-white/80">
+                      {language}
+                    </span>
+                  </>
+                )}
+              </div>
+
+              <div className="hidden md:flex items-center gap-2 text-xs font-semibold mb-3.5 text-white/80">
+                {genres.map((genre) => (
+                  <span key={genre} className="badge-glass px-2.5 py-0.5 rounded-full">{genre}</span>
                 ))}
               </div>
 
+              <p className="text-xs md:text-sm font-medium text-white/80 mb-5 leading-relaxed max-w-md md:max-w-lg line-clamp-3 text-center md:text-left px-1 md:px-0 text-pretty drop-shadow-md">
+                {currentMovie.overview}
+              </p>
+
               <div className="flex items-center gap-3 w-full justify-center md:justify-start">
-                <button 
+                <button
                   onClick={handleWatchNow}
-                  className="btn-beveled-solid anim-btn flex items-center justify-center gap-2 px-6 md:px-10 h-[48px] rounded-lg font-bold flex-1 md:flex-none max-w-[280px] md:max-w-none"
+                  className="btn-beveled-solid anim-btn flex items-center justify-center gap-2.5 px-7 md:px-9 h-12 rounded-2xl font-bold flex-1 md:flex-none max-w-[280px] md:max-w-none cursor-pointer shadow-2xl"
                 >
-                  <PlayRegular className="w-5 h-5 fill-current text-[#0f1014]" />
-                  <span className="text-[15px]">{disableStreaming ? 'View Details' : 'Watch Now'}</span>
+                  <PlayRegular className="w-5 h-5 fill-current text-[#09090b] translate-x-0.5" />
+                  <span className="text-sm md:text-[15px]">{disableStreaming ? 'View Details' : 'Watch Now'}</span>
                 </button>
-                <button 
+                <button
                   onClick={toggleWatchlist}
-                  className={`btn-glass-beveled anim-btn flex items-center justify-center w-[48px] h-[48px] rounded-lg`}
+                  title={isInWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
+                  className={`btn-glass-beveled anim-btn flex items-center justify-center w-12 h-12 rounded-2xl cursor-pointer ${
+                    isInWatchlist ? 'active text-accent border-white/30' : ''
+                  }`}
+                  aria-label="Toggle Watchlist"
                 >
-                  {isInWatchlist ? <CheckmarkRegular className="w-6 h-6" /> : <AddRegular className="w-6 h-6" />}
+                  {isInWatchlist ? <CheckmarkRegular className="w-5 h-5 text-accent" /> : <AddRegular className="w-5 h-5 text-white" />}
+                </button>
+                <button
+                  onClick={() => {
+                    const type = currentMovie.media_type || (currentMovie.title ? 'movie' : 'tv');
+                    navigate(`/${type}/${currentMovie.id}`);
+                  }}
+                  title="More Details"
+                  className="btn-glass-beveled anim-btn hidden sm:flex items-center justify-center w-12 h-12 rounded-2xl cursor-pointer"
+                  aria-label="More Details"
+                >
+                  <InfoRegular className="w-5 h-5 text-white/85" />
                 </button>
               </div>
             </motion.div>
 
             <div className="flex md:hidden items-center justify-center gap-1.5 mt-4">
               {movies.slice(0, 8).map((_, idx) => (
-                <div 
+                <button
                   key={idx}
-                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${idx === currentIndex ? 'bg-white scale-125' : 'bg-white/30'}`}
+                  onClick={() => setCurrentIndex(idx)}
+                  aria-label={`Go to slide ${idx + 1}`}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentIndex ? 'w-6 bg-white' : 'w-2 bg-white/20'}`}
                 />
               ))}
             </div>
           </div>
 
           {showVideo && (
-            <div className="hidden md:flex absolute right-6 bottom-1/3 flex-col gap-3 z-30 transition-opacity duration-500">
-              <button 
+            <div className="hidden md:flex absolute right-8 bottom-1/3 flex-col gap-3 z-30 transition-opacity duration-500">
+              <button
                 onClick={() => {
                   setIsPaused(!isPaused);
                   if (playerRef.current) {
@@ -402,22 +432,24 @@ export const Hero = ({ movies }: HeroProps) => {
                     else playerRef.current.pauseVideo();
                   }
                 }}
-                className="anim-icon w-10 h-10 glass rounded-full flex items-center justify-center text-white shadow-lg"
+                className="btn-glass-beveled anim-icon w-10 h-10 rounded-full flex items-center justify-center text-white cursor-pointer"
+                aria-label="Pause or resume hero video"
               >
                 {isPaused ? <PlayRegular className="w-4 h-4 ml-0.5" /> : <PauseRegular className="w-4 h-4" />}
               </button>
-              <button 
+              <button
                 onClick={() => setIsMuted(!isMuted)}
-                className="anim-icon w-10 h-10 glass rounded-full flex items-center justify-center text-white shadow-lg"
+                className="btn-glass-beveled anim-icon w-10 h-10 rounded-full flex items-center justify-center text-white cursor-pointer"
+                aria-label="Mute or unmute hero video"
               >
                 {isMuted ? <SpeakerOffRegular className="w-4 h-4" /> : <Speaker2Regular className="w-4 h-4" />}
               </button>
             </div>
           )}
 
-          <div className="hidden md:flex absolute right-6 bottom-8 items-center z-30 group/thumbs">
-            <div className="relative w-[432px]">
-              <div 
+          <div className="hidden md:flex absolute right-8 bottom-10 items-center z-30 group/thumbs">
+            <div className="glass-debossed p-2 rounded-2xl relative w-[440px] shadow-[0_20px_48px_rgba(0,0,0,0.8)] overflow-hidden">
+              <div
                 className="flex gap-2 transition-transform duration-500 ease-in-out"
                 style={{ transform: `translateX(-${Math.max(0, currentIndex - 4) * 88}px)` }}
               >
@@ -425,40 +457,51 @@ export const Hero = ({ movies }: HeroProps) => {
                   const startIndex = Math.max(0, currentIndex - 4);
                   const isVisible = idx >= startIndex && idx <= startIndex + 4;
                   return (
-                    <div 
+                    <div
                       key={movie.id}
                       onClick={() => setCurrentIndex(idx)}
-                      className={`flex-none relative w-20 aspect-video rounded-md cursor-pointer transition-all duration-300 ${idx === currentIndex ? 'ring-2 ring-white scale-110 z-10 shadow-2xl' : 'hover:opacity-100'} ${isVisible ? (idx === currentIndex ? 'opacity-100' : 'opacity-60') : 'opacity-0 pointer-events-none'}`}
+                      className={`flex-none relative w-20 aspect-video rounded-xl overflow-hidden cursor-pointer transition-all duration-300 ${
+                        idx === currentIndex
+                          ? 'ring-1.5 ring-white -translate-y-0.5 z-10 shadow-lg'
+                          : 'hover:opacity-100 opacity-60'
+                      } ${isVisible ? '' : 'pointer-events-none opacity-0'}`}
                     >
-                      <LazyImage 
-                        src={getImageUrl(movie.backdrop_path)} 
-                        alt="Next" 
-                        className="w-full h-full object-cover rounded-md"
+                      <LazyImage
+                        src={getImageUrl(movie.backdrop_path)}
+                        alt="Next"
+                        className="w-full h-full object-cover rounded-xl"
                         referrerPolicy="no-referrer"
                       />
                       {idx === currentIndex && (
-                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center rounded-md">
-                          <div className="w-1 h-1 bg-white rounded-full animate-ping" />
+                        <div className="absolute bottom-0 inset-x-0 h-[2.5px] bg-white/30 overflow-hidden rounded-b-xl z-20">
+                          <motion.div
+                            key={currentIndex}
+                            initial={{ width: '0%' }}
+                            animate={{ width: '100%' }}
+                            transition={{ duration: videoKey ? 4 : 10, ease: 'linear' }}
+                            className="h-full bg-white"
+                          />
                         </div>
                       )}
                     </div>
                   );
                 })}
               </div>
-              
-              <div 
+
+              <button
                 onClick={nextSlide}
-                className="absolute right-0 top-0 bottom-0 w-12 flex items-center justify-end pr-1 bg-gradient-to-l from-black/80 via-black/40 to-transparent cursor-pointer opacity-0 group-hover/thumbs:opacity-100 transition-opacity z-20 rounded-r-md"
+                className="absolute right-0 top-0 bottom-0 w-12 flex items-center justify-end pr-2 bg-gradient-to-l from-black/80 via-black/40 to-transparent cursor-pointer opacity-0 group-hover/thumbs:opacity-100 transition-opacity z-20 rounded-r-xl"
+                aria-label="Next slide"
               >
-                <ChevronRightRegular className="w-6 h-6 text-white drop-shadow-lg" />
-              </div>
+                <ChevronRightRegular className="w-5 h-5 text-white drop-shadow-lg" />
+              </button>
             </div>
           </div>
 
           {}
           <div className="hidden md:flex absolute bottom-6 left-1/2 -translate-x-1/2 flex-col items-center z-30 opacity-40 hover:opacity-100 transition-opacity duration-300">
             <div className="w-[18px] h-[28px] border-[1.5px] border-white/40 rounded-full flex justify-center p-[2px]">
-              <motion.div 
+              <motion.div
                 animate={{ y: [0, 8, 0], opacity: [0.3, 1, 0.3] }}
                 transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
                 className="w-[3px] h-[5px] bg-white/70 rounded-full"

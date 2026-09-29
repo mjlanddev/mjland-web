@@ -30,8 +30,8 @@ interface EpisodesSectionProps {
   gridLayout?: boolean;
 }
 
-const PAGE_SIZE_GRID = 24; 
-const PAGE_SIZE_LIST = 12; 
+const PAGE_SIZE_GRID = 24;
+const PAGE_SIZE_LIST = 12;
 
 export const EpisodesSection: React.FC<EpisodesSectionProps> = ({
   animeId,
@@ -113,7 +113,6 @@ export const EpisodesSection: React.FC<EpisodesSectionProps> = ({
     }
   };
 
-  // Build compact page-number array with ellipsis
   const getPageNumbers = () => {
     if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
     const pages: (number | "...")[] = [];
@@ -139,15 +138,14 @@ export const EpisodesSection: React.FC<EpisodesSectionProps> = ({
         )}
       </div>
 
-      {}
       {totalSeasons && totalSeasons > 1 && (
-        <div className="flex gap-2.5 overflow-x-auto no-scrollbar mb-5 pb-1 -mx-1 px-1">
+        <div className="flex gap-2.5 overflow-x-auto no-scrollbar mb-6 py-2.5 px-1 -mx-1">
           {Array.from({ length: totalSeasons }, (_, i) => i + 1).map((s) => (
             <button
               key={s}
               onClick={() => setSelectedSeason(s)}
-              className={`btn-glass-beveled px-5 py-2 rounded-full font-bold text-xs shrink-0 cursor-pointer ${
-                selectedSeason === s ? 'active' : ''
+              className={`px-5 py-2 rounded-2xl font-bold text-xs shrink-0 cursor-pointer transition-colors duration-200 ${
+                selectedSeason === s ? 'btn-beveled-solid' : 'btn-glass-beveled'
               }`}
             >
               Season {s}
@@ -157,10 +155,10 @@ export const EpisodesSection: React.FC<EpisodesSectionProps> = ({
       )}
 
       {loading ? (
-        <div className={gridLayout ? "grid grid-cols-2 xl:grid-cols-3 gap-x-5 gap-y-6" : "space-y-2.5"}>
+        <div className={gridLayout ? "grid grid-cols-2 xl:grid-cols-3 gap-x-5 gap-y-6" : "space-y-3"}>
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className={`flex ${gridLayout ? 'gap-4' : 'gap-3 items-start py-2'}`}>
-              <div className={`relative flex-shrink-0 rounded-xl bg-white/5 animate-pulse ${gridLayout ? 'w-44 aspect-video' : 'w-32 sm:w-36 aspect-video'}`} />
+              <div className={`relative flex-shrink-0 rounded-2xl bg-white/5 animate-pulse ${gridLayout ? 'w-44 aspect-video' : 'w-32 sm:w-36 aspect-video'}`} />
               <div className={`flex-1 min-w-0 ${gridLayout ? 'flex flex-col justify-center gap-2' : 'py-0.5 flex flex-col gap-2'}`}>
                 <div className="h-4 w-3/4 bg-white/5 rounded animate-pulse" />
                 <div className="h-3 w-1/4 bg-white/5 rounded animate-pulse" />
@@ -175,7 +173,6 @@ export const EpisodesSection: React.FC<EpisodesSectionProps> = ({
         </div>
       ) : (
         <>
-          {}
           {gridLayout ? (
             <div className="grid grid-cols-2 xl:grid-cols-3 gap-x-5 gap-y-6">
               {pageEpisodes.map((ep) => {
@@ -186,16 +183,16 @@ export const EpisodesSection: React.FC<EpisodesSectionProps> = ({
                     key={ep.id}
                     onClick={() => handleEpisodeClick(ep)}
                     tabIndex={isAired ? 0 : -1}
-                    className={`group flex flex-col gap-2.5 rounded-xl transition-all ${
-                      isAired ? "cursor-pointer active:scale-[0.98]" : "opacity-50"
-                    } ${isWatched ? "ring-1 ring-accent/40 bg-white/[0.02] p-2" : ""}`}
+                    className={`group flex flex-col gap-2.5 p-3 rounded-2xl card-glass-debossed ${
+                      isAired ? "cursor-pointer" : "opacity-50"
+                    } ${isWatched ? "ring-1.5 ring-accent/60 bg-white/[0.04]" : ""}`}
                   >
-                    <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-white/5 border border-white/5 shadow-md">
+                    <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black/40">
                       {ep.still_path ? (
                         <LazyImage
                           src={getImageUrl(ep.still_path)}
                           alt={ep.name}
-                          className="w-full h-full object-cover transition-transform duration-300"
+                          className="w-full h-full object-cover transition-all duration-200 group-hover:brightness-105"
                           referrerPolicy="no-referrer"
                         />
                       ) : (
@@ -204,8 +201,8 @@ export const EpisodesSection: React.FC<EpisodesSectionProps> = ({
                         </div>
                       )}
                       {isAired && (
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <Play className="w-10 h-10 fill-current text-white" />
+                        <div className="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <Play className="w-10 h-10 fill-current text-white drop-shadow-xl" />
                         </div>
                       )}
                       {!isAired && (
@@ -214,26 +211,27 @@ export const EpisodesSection: React.FC<EpisodesSectionProps> = ({
                         </div>
                       )}
                       {isWatched && (
-                        <div className="absolute top-2 right-2 bg-red-600 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider text-white shadow-lg">
+                        <div className="absolute top-2 right-2 badge-glass px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-accent">
                           Last Watched
                         </div>
                       )}
-                      <div className="absolute bottom-2 right-2 bg-black/80 backdrop-blur-sm rounded-md px-2 py-0.5 text-[10px] font-bold text-white/90">
+                      <div className="absolute bottom-2 right-2 badge-glass rounded-lg px-2 py-0.5 text-[10px] font-bold text-white/90">
                         {formatRuntime(ep.runtime)}
                       </div>
-                      <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-sm rounded-md px-2 py-0.5 text-[10px] font-bold text-white/80">
+                      <div className="absolute top-2 left-2 badge-glass rounded-lg px-2 py-0.5 text-[10px] font-bold text-white/80">
                         EP {ep.episode_number}
                       </div>
                     </div>
                     <div className="space-y-1">
                       <h4 className="text-sm font-bold text-white leading-snug line-clamp-1 group-hover:text-accent transition-colors">
+                        <span className="text-accent/80 mr-1.5">{ep.episode_number}.</span>
                         {ep.name || `Episode ${ep.episode_number}`}
                       </h4>
                       <div className="flex items-center gap-2 text-xs text-white/40 font-medium">
                         {ep.air_date && <span>{formatDate(ep.air_date)}</span>}
                       </div>
                       {ep.overview && ep.overview !== "Episode overview not available." && (
-                        <p className="text-xs text-white/50 leading-relaxed line-clamp-2 pt-0.5">
+                        <p className="text-xs text-white/40 leading-relaxed line-clamp-2 pt-0.5">
                           {ep.overview}
                         </p>
                       )}
@@ -243,8 +241,8 @@ export const EpisodesSection: React.FC<EpisodesSectionProps> = ({
               })}
             </div>
           ) : (
-            
-            <div className="space-y-1.5">
+
+            <div className="space-y-2">
               {pageEpisodes.map((ep) => {
                 const isAired = !ep.air_date || new Date(ep.air_date) <= new Date();
                 const isWatched = historyItem?.season_number === selectedSeason && historyItem?.episode_number === ep.episode_number;
@@ -253,16 +251,16 @@ export const EpisodesSection: React.FC<EpisodesSectionProps> = ({
                     key={ep.id}
                     onClick={() => handleEpisodeClick(ep)}
                     tabIndex={isAired ? 0 : -1}
-                    className={`group flex gap-3 items-center rounded-xl transition-all duration-200 py-2 px-1.5 ${
-                      isAired ? "cursor-pointer hover:bg-white/5 active:scale-[0.98]" : "opacity-60"
-                    } ${isWatched ? "bg-white/[0.04] ring-1 ring-accent/30" : ""}`}
+                    className={`group flex gap-3.5 items-center rounded-2xl p-2.5 card-glass-debossed transition-all duration-200 ${
+                      isAired ? "cursor-pointer" : "opacity-60"
+                    } ${isWatched ? "ring-1.5 ring-accent/60 bg-white/[0.04]" : ""}`}
                   >
-                    <div className="relative flex-shrink-0 w-32 sm:w-40 aspect-video rounded-xl overflow-hidden bg-white/5 border border-white/5 shadow-sm">
+                    <div className="relative flex-shrink-0 w-32 sm:w-40 aspect-video rounded-xl overflow-hidden bg-black/40">
                       {ep.still_path ? (
                         <LazyImage
                           src={getImageUrl(ep.still_path)}
                           alt={ep.name}
-                          className="w-full h-full object-cover transition-transform duration-300"
+                          className="w-full h-full object-cover transition-all duration-200 group-hover:brightness-105"
                           referrerPolicy="no-referrer"
                         />
                       ) : (
@@ -271,8 +269,8 @@ export const EpisodesSection: React.FC<EpisodesSectionProps> = ({
                         </div>
                       )}
                       {isAired && (
-                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <Play className="w-7 h-7 fill-current text-white drop-shadow-lg" />
+                        <div className="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <Play className="w-7 h-7 fill-current text-white drop-shadow-xl" />
                         </div>
                       )}
                       {!isAired && (
@@ -280,24 +278,25 @@ export const EpisodesSection: React.FC<EpisodesSectionProps> = ({
                           <LockClosedRegular className="w-5 h-5 text-white/60" />
                         </div>
                       )}
-                      <div className="absolute bottom-1 right-1 bg-black/80 backdrop-blur-md rounded px-1.5 py-0.5 text-[9px] font-bold text-white tracking-wide">
+                      <div className="absolute bottom-1.5 right-1.5 badge-glass rounded-md px-1.5 py-0.5 text-[9px] font-bold text-white tracking-wide">
                         E{ep.episode_number}
                       </div>
                     </div>
                     <div className="flex-1 min-w-0 flex flex-col justify-center py-0.5">
-                      <div className="flex items-start justify-between gap-1.5 mb-0.5">
-                        <h4 className="text-xs sm:text-sm font-bold text-white/95 leading-tight line-clamp-1 group-hover:text-accent transition-colors">
+                      <div className="flex items-start justify-between gap-1.5 mb-1">
+                        <h4 className="text-xs sm:text-sm font-bold text-white leading-tight line-clamp-1 group-hover:text-accent transition-colors">
+                          <span className="text-accent/80 mr-1.5">{ep.episode_number}.</span>
                           {ep.name || `Episode ${ep.episode_number}`}
                         </h4>
-                        <span className="text-[9px] sm:text-[10px] text-white/50 font-medium flex-shrink-0">
+                        <span className="text-[10px] text-white/50 font-semibold flex-shrink-0">
                           {formatRuntime(ep.runtime)}
                         </span>
                       </div>
                       {ep.air_date && (
-                        <p className="text-[10px] sm:text-[11px] text-white/50 font-medium mb-1">{formatDate(ep.air_date)}</p>
+                        <p className="text-[10px] sm:text-[11px] text-white/40 font-medium mb-1">{formatDate(ep.air_date)}</p>
                       )}
                       {ep.overview && ep.overview !== "Episode overview not available." && (
-                        <p className="text-[11px] text-white/40 leading-snug line-clamp-2">{ep.overview}</p>
+                        <p className="text-[11px] text-white/40 leading-relaxed line-clamp-2">{ep.overview}</p>
                       )}
                     </div>
                   </div>
@@ -306,20 +305,17 @@ export const EpisodesSection: React.FC<EpisodesSectionProps> = ({
             </div>
           )}
 
-          {}
           {totalPages > 1 && (
-            <div className="mt-6 flex items-center justify-center gap-1.5 flex-wrap">
-              {}
+            <div className="mt-8 flex items-center justify-center gap-2 flex-wrap">
               <button
                 onClick={() => goToPage(currentPage - 1)}
                 disabled={currentPage === 1}
                 aria-label="Previous Page"
-                className="btn-glass-beveled w-9 h-9 flex items-center justify-center rounded-xl disabled:opacity-30 disabled:cursor-not-allowed"
+                className="btn-glass-beveled w-10 h-10 flex items-center justify-center rounded-2xl disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <ChevronLeftRegular className="w-4 h-4" />
               </button>
 
-              {}
               {getPageNumbers().map((p, i) =>
                 p === "..." ? (
                   <span key={`ellipsis-${i}`} className="w-8 text-center text-white/40 text-sm select-none">
@@ -331,8 +327,8 @@ export const EpisodesSection: React.FC<EpisodesSectionProps> = ({
                     onClick={() => goToPage(p as number)}
                     aria-label={`Page ${p}`}
                     aria-current={currentPage === p ? 'page' : undefined}
-                    className={`btn-glass-beveled w-9 h-9 flex items-center justify-center rounded-xl text-xs font-bold ${
-                      currentPage === p ? 'active' : ''
+                    className={`w-10 h-10 flex items-center justify-center rounded-2xl text-xs font-bold transition-all ${
+                      currentPage === p ? 'btn-beveled-solid' : 'btn-glass-beveled'
                     }`}
                   >
                     {p}
@@ -340,12 +336,11 @@ export const EpisodesSection: React.FC<EpisodesSectionProps> = ({
                 )
               )}
 
-              {}
               <button
                 onClick={() => goToPage(currentPage + 1)}
                 disabled={currentPage === totalPages}
                 aria-label="Next Page"
-                className="btn-glass-beveled w-9 h-9 flex items-center justify-center rounded-xl disabled:opacity-30 disabled:cursor-not-allowed"
+                className="btn-glass-beveled w-10 h-10 flex items-center justify-center rounded-2xl disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <ChevronRightRegular className="w-4 h-4" />
               </button>

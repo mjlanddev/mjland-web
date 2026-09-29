@@ -8,11 +8,11 @@ interface PosterImageProps {
   referrerPolicy?: React.HTMLAttributeReferrerPolicy;
 }
 
-export const PosterImage: React.FC<PosterImageProps> = ({ 
-  src, 
-  alt, 
-  className = "", 
-  referrerPolicy = "no-referrer" 
+export const PosterImage: React.FC<PosterImageProps> = ({
+  src,
+  alt,
+  className = "",
+  referrerPolicy = "no-referrer"
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -43,7 +43,7 @@ export const PosterImage: React.FC<PosterImageProps> = ({
             setHasError(true);
             setIsLoading(false);
           }}
-          className={`w-full h-full object-cover transition-all duration-300 ease-out ${isLoading ? 'opacity-0 blur-md' : 'opacity-100 blur-0'}`}
+          className={`w-full h-full object-cover transition-opacity duration-200 ease-out ${isLoading ? 'opacity-0' : 'opacity-100'}`}
           referrerPolicy={referrerPolicy}
           loading="lazy"
           decoding="async"

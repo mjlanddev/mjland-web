@@ -61,30 +61,29 @@ export const PersonDetails = () => {
 
   return (
     <>
-      <SEO 
+      <SEO
         title={`${person.name} - Movies & TV Shows`}
         description={person.biography?.substring(0, 160) || `Check out ${person.name}'s movies and TV shows.`}
         image={profileUrl}
         type="profile"
       />
-      
-      <div className="min-h-screen bg-bg text-white pb-20 relative">
-        
-        {/* Back Button Overlay - Absolute Top */}
-        <div className="absolute top-0 left-0 w-full px-4 md:px-6 pt-6 md:pt-8 z-30">
+
+      <div className="min-h-screen bg-black text-white pb-20 relative">
+
+        <div className="absolute top-0 left-0 w-full px-4 md:pl-48 md:pr-8 pt-6 md:pt-8 z-30">
           <motion.button
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             whileHover={{ x: -4 }}
             onClick={handleBack}
-            className="flex items-center gap-2 text-white/80 hover:text-white transition-colors group w-fit anim-btn bg-black/40 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10"
+            className="flex items-center gap-2 text-white/80 hover:text-white transition-colors group w-fit btn-glass-beveled px-4 py-2 rounded-full cursor-pointer"
+            aria-label="Go back"
           >
             <ChevronLeft className="w-5 h-5 text-white" />
             <span className="text-xs font-bold uppercase tracking-wider">Back</span>
           </motion.button>
         </div>
 
-        {/* Space-Efficient Backdrop Banner */}
         {backdropUrl && (
           <div className="relative h-[28vh] md:h-[40vh] w-full">
             <motion.div
@@ -99,22 +98,20 @@ export const PersonDetails = () => {
                 className="w-full h-full object-cover opacity-40 md:opacity-50"
                 referrerPolicy="no-referrer"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/60 to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-r from-bg/90 via-bg/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/20 to-transparent" />
             </motion.div>
           </div>
         )}
 
-        {}
         <div className={`relative z-20 max-w-7xl mx-auto px-4 md:px-8 ${backdropUrl ? '-mt-16 md:-mt-24' : 'pt-24'} pb-8`}>
-          
-          <div className="flex flex-col md:flex-row gap-5 md:gap-8 items-center md:items-start mb-10">
-            {}
-            <motion.div 
+
+          <div className="liquid-dock rounded-3xl p-6 md:p-8 border border-white/15 ring-1 ring-inset ring-white/10 backdrop-blur-2xl shadow-[0_28px_64px_rgba(0,0,0,0.85)] flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start mb-10">
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="shrink-0 w-32 h-32 md:w-48 md:h-[288px] rounded-full md:rounded-2xl overflow-hidden bg-white/5 border border-white/10 shadow-2xl z-10"
+              className="shrink-0 w-36 h-36 md:w-52 md:h-[312px] rounded-2xl overflow-hidden card-glass-debossed shadow-2xl z-10"
             >
               {profileUrl ? (
                 <LazyImage
@@ -129,35 +126,34 @@ export const PersonDetails = () => {
               )}
             </motion.div>
 
-            {}
-            <div className="flex-1 flex flex-col items-center md:items-start text-center md:text-left md:pt-8">
-              <motion.h1 
+            <div className="flex-1 flex flex-col items-center md:items-start text-center md:text-left md:pt-4 w-full">
+              <motion.h1
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.1 }}
-                className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tight text-white mb-3 drop-shadow-lg"
+                className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tight text-white mb-3 drop-shadow-lg text-balance"
               >
                 {person.name}
               </motion.h1>
-              
-              <motion.div 
+
+              <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.15 }}
-                className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 text-[11px] font-bold text-white/70 mb-5 drop-shadow-md"
+                className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-xs font-semibold text-white/80 mb-5 drop-shadow-md"
               >
-                <div className="px-3 py-1 rounded-full bg-white/10 border border-white/10 backdrop-blur-md">
+                <div className="px-3.5 py-1 rounded-full glass-debossed">
                   {person.known_for_department}
                 </div>
                 {person.birthday && (
-                  <div className="flex items-center gap-1.5 bg-white/5 px-3 py-1 rounded-full border border-white/10 backdrop-blur-md">
+                  <div className="flex items-center gap-1.5 glass-debossed px-3.5 py-1 rounded-full tabular-nums">
                     <Calendar className="w-3.5 h-3.5 text-accent" />
                     {new Date(person.birthday).getFullYear()}
                     {person.deathday ? ` - ${new Date(person.deathday).getFullYear()}` : ''}
                   </div>
                 )}
                 {person.place_of_birth && (
-                  <div className="flex items-center gap-1.5 bg-white/5 px-3 py-1 rounded-full border border-white/10 backdrop-blur-md">
+                  <div className="flex items-center gap-1.5 glass-debossed px-3.5 py-1 rounded-full">
                     <MapPin className="w-3.5 h-3.5 text-accent" />
                     {person.place_of_birth}
                   </div>
@@ -165,13 +161,13 @@ export const PersonDetails = () => {
               </motion.div>
 
               {person.biography && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="w-full max-w-3xl"
+                  className="w-full glass-debossed p-5 md:p-6 rounded-2xl"
                 >
-                  <div className={`text-[13px] md:text-sm leading-relaxed text-white/70 font-medium ${!isBioExpanded && 'line-clamp-4 md:line-clamp-5'}`}>
+                  <div className={`text-[13px] md:text-sm leading-relaxed text-white/75 font-medium text-pretty ${!isBioExpanded && 'line-clamp-4 md:line-clamp-5'}`}>
                     {person.biography.split('\n').map((line: string, i: number) => (
                       <React.Fragment key={i}>
                         {line}
@@ -180,9 +176,9 @@ export const PersonDetails = () => {
                     ))}
                   </div>
                   {person.biography.length > 250 && (
-                    <button 
+                    <button
                       onClick={() => setIsBioExpanded(!isBioExpanded)}
-                      className="mt-2 text-[11px] font-bold text-accent hover:text-white transition-colors uppercase tracking-wider"
+                      className="mt-3 btn-glass-beveled anim-btn px-3 py-1 rounded-full text-[11px] font-bold text-accent hover:text-white uppercase tracking-wider cursor-pointer"
                     >
                       {isBioExpanded ? 'Read Less' : 'Read More'}
                     </button>
@@ -193,22 +189,22 @@ export const PersonDetails = () => {
           </div>
 
           {}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
             className="space-y-6 md:space-y-8"
           >
             {knownFor.length > 0 && (
-              <MovieRow 
-                title="Known For (Acting)" 
-                movies={knownFor} 
+              <MovieRow
+                title="Known For (Acting)"
+                movies={knownFor}
               />
             )}
             {knownForCrew.length > 0 && (
-              <MovieRow 
-                title="Known For (Crew)" 
-                movies={knownForCrew} 
+              <MovieRow
+                title="Known For (Crew)"
+                movies={knownForCrew}
               />
             )}
           </motion.div>

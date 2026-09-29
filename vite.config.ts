@@ -26,5 +26,28 @@ export default defineConfig(({mode}) => {
         }
       }
     },
+    build: {
+      target: 'esnext',
+      minify: 'esbuild',
+      cssCodeSplit: true,
+      chunkSizeWarningLimit: 600,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('motion')) {
+                return 'vendor-motion';
+              }
+              if (id.includes('hugeicons-react') || id.includes('@fluentui') || id.includes('mage-icons-react')) {
+                return 'vendor-icons';
+              }
+              if (id.includes('axios')) {
+                return 'vendor-axios';
+              }
+            }
+          }
+        }
+      }
+    }
   };
 });

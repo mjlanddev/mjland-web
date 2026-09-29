@@ -2,22 +2,23 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { tmdbService, getImageUrl } from '../services/tmdbService';
 import { MovieDetails as MovieDetailsType, Episode, Movie } from '../types';
-import { 
-  PlayIcon as Play, 
-  Add01Icon as Plus, 
-  ArrowRight01Icon as ChevronRight, 
-  StarIcon as Star, 
-  VolumeHighIcon as Volume2, 
-  VolumeOffIcon as VolumeX, 
-  CheckmarkCircle02Icon as Check, 
-  Cancel01Icon as X, 
-  Share01Icon as Share2, 
-  Download01Icon as Download, 
-  ThumbsUpIcon as ThumbsUp 
+import {
+  PlayIcon as Play,
+  Add01Icon as Plus,
+  ArrowRight01Icon as ChevronRight,
+  StarIcon as Star,
+  VolumeHighIcon as Volume2,
+  VolumeOffIcon as VolumeX,
+  CheckmarkCircle02Icon as Check,
+  Cancel01Icon as X,
+  Share01Icon as Share2,
+  Download01Icon as Download,
+  ThumbsUpIcon as ThumbsUp
 } from 'hugeicons-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { storageService } from '../services/storageService';
 import { LoadingSpinner } from './LoadingSpinner';
+import { showToast } from '../utils/toast';
 
 declare global {
   interface Window {
@@ -46,7 +47,7 @@ export const MovieDetails = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const navigate = useNavigate();
-  
+
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const detailsContainerRef = useRef<HTMLDivElement>(null);
 
@@ -65,14 +66,14 @@ export const MovieDetails = () => {
       setLoading(true);
       setShowTrailer(false);
       try {
-        const data = type === 'movie' 
+        const data = type === 'movie'
           ? await tmdbService.getMovieDetails(parseInt(id))
           : await tmdbService.getTVDetails(parseInt(id));
         setDetails(data);
-        
+
         updateWatchlistStatus();
         window.addEventListener('watchlistUpdated', updateWatchlistStatus);
-        
+
         if (data.similar?.results?.length > 0) {
           setActiveTab('more');
         } else if (data.videos?.results?.length > 0) {
@@ -131,7 +132,7 @@ export const MovieDetails = () => {
 
     const setupPlayer = () => {
       if (!videoContainerRef.current) return;
-      
+
       try {
         if (playerRef.current) playerRef.current.destroy();
       } catch (e) {}
@@ -168,7 +169,7 @@ export const MovieDetails = () => {
               } catch (e) {}
             },
             onStateChange: (event: any) => {
-              if (event.data === 1) { 
+              if (event.data === 1) {
                 setShowTrailer(true);
               }
             }
@@ -271,9 +272,11 @@ export const MovieDetails = () => {
     if (isInWatchlist) {
       storageService.removeFromWatchlist(details.id);
       setIsInWatchlist(false);
+      showToast("Removed from Watchlist");
     } else {
       storageService.addToWatchlist(movie);
       setIsInWatchlist(true);
+      showToast("Added to Watchlist");
     }
   };
 
@@ -294,7 +297,7 @@ export const MovieDetails = () => {
       media_type: type as 'movie' | 'tv'
     };
     storageService.addToContinueWatching(movie);
-    
+
     if (type === 'tv') {
       if (historyItem?.season_number && historyItem?.episode_number) {
         navigate(`/watch/tv/${id}/${historyItem.season_number}/${historyItem.episode_number}`);
@@ -314,7 +317,7 @@ export const MovieDetails = () => {
 
   const year = new Date(details.release_date || details.first_air_date || '').getFullYear();
   const rating = details.vote_average.toFixed(1);
-  const duration = details.runtime 
+  const duration = details.runtime
     ? `${Math.floor(details.runtime / 60)}h ${details.runtime % 60}m`
     : details.number_of_seasons ? `${details.number_of_seasons} Seasons` : '';
 
@@ -380,7 +383,7 @@ export const MovieDetails = () => {
 
   return (
     <div ref={detailsContainerRef}>
-      <SEO 
+      <SEO
         title={details?.title || details?.name ? `${details.title || details.name} (${year}) - Watch Free` : "Loading..."}
         description={details?.overview || "Watch free movies and tv shows in HD."}
         image={details ? getImageUrl(details.backdrop_path || details.poster_path, 'original') : undefined}

@@ -7,7 +7,7 @@ import App from './App.tsx';
 import './index.css';
 
 if (import.meta.env.DEV) {
-  
+
   window.console.clear = () => console.log('[Console Clear Blocked by DevTools Helper]');
 }
 

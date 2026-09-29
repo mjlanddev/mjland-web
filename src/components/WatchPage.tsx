@@ -1,14 +1,14 @@
-﻿import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { tmdbService, getImageUrl } from '../services/tmdbService';
 import { MovieDetails, Episode } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { storageService } from '../services/storageService';
-import { 
-  ArrowLeft01Icon as ChevronLeft, 
+import {
+  ArrowLeft01Icon as ChevronLeft,
   ArrowRight01Icon as ChevronRight,
-  ArrowDown01Icon as ChevronDown, 
-  PlayIcon as Play, 
+  ArrowDown01Icon as ChevronDown,
+  PlayIcon as Play,
   Share01Icon as Share2,
   Tv01Icon as TvIcon,
   ReloadIcon as RefreshIcon,
@@ -22,6 +22,7 @@ import {
 import { MobileWatchPage } from './MobileWatchPage';
 import { LazyImage } from './LazyImage';
 import { PosterImage } from './PosterImage';
+import { MovieCard } from './MovieRow';
 import { ImdbBadge } from './ImdbBadge';
 import { MpaaBadge } from './MpaaBadge';
 import { SEO } from './SeoComponent';
@@ -61,7 +62,14 @@ export const WatchPage = () => {
   const [showServerDropdown, setShowServerDropdown] = useState(false);
   const [isExpandedDesc, setIsExpandedDesc] = useState(false);
   const [showDisclaimer, setShowDisclaimer] = useState(true);
+  const [landscapeSetting, setLandscapeSetting] = useState(() => storageService.isLandscapePosterEnabled());
   const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  useEffect(() => {
+    const handleLandscape = () => setLandscapeSetting(storageService.isLandscapePosterEnabled());
+    window.addEventListener('landscapePosterSettingUpdated', handleLandscape);
+    return () => window.removeEventListener('landscapePosterSettingUpdated', handleLandscape);
+  }, []);
 
   const handleFullscreen = () => {
     const el = iframeRef.current as any;
@@ -81,7 +89,7 @@ export const WatchPage = () => {
   const disableStreaming = import.meta.env.VITE_DISABLE_STREAMING === 'true';
 
   useEffect(() => {
-    
+
     if (disableStreaming && id && type) {
       navigate(`/${type}/${id}`, { replace: true });
     }
@@ -138,7 +146,7 @@ export const WatchPage = () => {
       if (!id || !type) return;
       setLoading(true);
       try {
-        const data = type === 'movie' 
+        const data = type === 'movie'
           ? await tmdbService.getMovieDetails(parseInt(id))
           : await tmdbService.getTVDetails(parseInt(id));
         setDetails(data);
@@ -194,7 +202,7 @@ export const WatchPage = () => {
         const container = document.getElementById('episodes-list-container');
         if (el && container) {
           container.scrollTo({
-            top: el.offsetTop - container.offsetTop - 16, 
+            top: el.offsetTop - container.offsetTop - 16,
             behavior: 'smooth'
           });
         }
@@ -279,17 +287,28 @@ export const WatchPage = () => {
   const releaseYear = details.release_date ? details.release_date.split('-')[0] : details.first_air_date ? details.first_air_date.split('-')[0] : '';
   const title = details.title || details.name;
 
+  const getCertification = () => {
+    if (!details) return '';
+    if (type === 'tv' && details.content_ratings) {
+      const r = details.content_ratings.results?.find((c: any) => c.iso_3166_1 === 'IN' || c.iso_3166_1 === 'US');
+      return r?.rating || '';
+    } else if (type === 'movie' && details.release_dates) {
+      const r = details.release_dates.results?.find((c: any) => c.iso_3166_1 === 'IN' || c.iso_3166_1 === 'US');
+      return r?.release_dates?.[0]?.certification || '';
+    }
+    return '';
+  };
+
   return (
-    <div className="min-h-screen bg-bg text-white font-sans selection:bg-accent/30">
-      <SEO 
-        title={type === 'tv' && currentEpData?.name ? `Watching ${title} - S${season}:E${episode}` : `Watching ${title}`} 
+    <div className="min-h-screen bg-black text-white font-sans selection:bg-accent/30">
+      <SEO
+        title={type === 'tv' && currentEpData?.name ? `Watching ${title} - S${season}:E${episode}` : `Watching ${title}`}
         description={`Watch ${title} in HD entirely for free. Stream on any device.`}
         image={getImageUrl(details.backdrop_path || details.poster_path, 'original')}
       />
-      
-      {}
-      <header className="sticky top-0 z-50 w-full h-14 bg-bg/90 backdrop-blur-2xl border-b border-white/5 px-6 lg:px-8 flex items-center justify-between">
-        {}
+
+      <header className="sticky top-0 z-50 w-full h-14 liquid-dock border-b border-white/10 px-4 lg:px-8 flex items-center justify-between shadow-xl">
+
         <div className="flex items-center gap-3.5 min-w-0">
           <button
             onClick={() => {
@@ -313,15 +332,14 @@ export const WatchPage = () => {
           </button>
         </div>
 
-        {}
         <div className="flex items-center gap-2 shrink-0">
-          {}
+
           <div className="relative">
             <button
               onClick={() => setShowServerDropdown(!showServerDropdown)}
               className="btn-glass-beveled anim-btn flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold"
             >
-              <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400" />
+              <span className="w-2 h-2 rounded-full bg-accent" />
               <span className="text-white/50 font-medium">Server:</span>
               <span className="text-white">{activeServer.name}</span>
               <ChevronDown className={`w-3.5 h-3.5 text-white/40 transition-transform duration-200 ${showServerDropdown ? 'rotate-180' : ''}`} />
@@ -330,16 +348,16 @@ export const WatchPage = () => {
             <AnimatePresence>
               {showServerDropdown && (
                 <>
-                  <div 
-                    onClick={() => setShowServerDropdown(false)} 
-                    className="fixed inset-0 z-40 bg-transparent" 
+                  <div
+                    onClick={() => setShowServerDropdown(false)}
+                    className="fixed inset-0 z-40 bg-transparent"
                   />
                   <motion.div
                     initial={{ opacity: 0, y: 6, scale: 0.96 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 6, scale: 0.96 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-2 w-72 bg-[#0f1014]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl p-1.5 z-50 flex flex-col gap-1 max-h-80 overflow-y-auto no-scrollbar"
+                    className="absolute right-0 mt-2 w-72 liquid-dock rounded-2xl shadow-[0_24px_60px_rgba(0,0,0,0.95)] p-2 z-50 flex flex-col gap-1 max-h-80 overflow-y-auto no-scrollbar"
                   >
                     <div className="px-3 py-1.5 text-[10px] font-bold text-white/40 uppercase tracking-wider">
                       Streaming Sources
@@ -354,16 +372,16 @@ export const WatchPage = () => {
                             setShowServerDropdown(false);
                           }}
                           className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all cursor-pointer ${
-                            isActive 
-                              ? 'bg-white/15 text-white font-bold' 
-                              : 'text-white/60 hover:bg-white/5 hover:text-white'
+                            isActive
+                              ? 'glass-debossed text-white font-bold'
+                              : 'text-white/60 hover:bg-white/[0.06] hover:text-white'
                           }`}
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
                             <Play className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-white' : 'text-white/30'}`} />
                             <span className="text-xs truncate">{server.name}</span>
                           </div>
-                          <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-md ${isActive ? 'bg-white text-black font-bold' : 'bg-white/5 text-white/50'}`}>
+                          <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-md ${isActive ? 'bg-white text-black font-bold' : 'badge-glass text-white/70'}`}>
                             {server.tag}
                           </span>
                         </button>
@@ -408,7 +426,7 @@ export const WatchPage = () => {
             onClick={shareContent}
             className="btn-glass-beveled anim-btn flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold"
           >
-            {copied ? <CheckIcon className="w-4 h-4 text-emerald-400" /> : <Share2 className="w-4 h-4" />}
+            {copied ? <CheckIcon className="w-4 h-4 text-accent" /> : <Share2 className="w-4 h-4" />}
             <span>{copied ? 'Copied' : 'Share'}</span>
           </button>
         </div>
@@ -416,11 +434,10 @@ export const WatchPage = () => {
 
       {}
       <main className="max-w-[1720px] mx-auto px-4 lg:px-8 py-5">
-        
-        {}
+
         {isTheaterMode && (
           <div className="w-full mb-6">
-            <div className="w-full aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/10">
+            <div className="w-full aspect-video bg-black rounded-3xl overflow-hidden shadow-[0_24px_64px_rgba(0,0,0,0.9)] border border-white/10 ring-1 ring-inset ring-white/10">
               <iframe
                 ref={iframeRef}
                 id="main-video-player"
@@ -436,154 +453,139 @@ export const WatchPage = () => {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          {}
+
           <div className={`${isTheaterMode ? 'lg:col-span-8' : 'lg:col-span-8 xl:col-span-8'} space-y-5`}>
-            
-            {}
+
             {!isTheaterMode && (
-              <div className="w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+              <div className="w-full aspect-video bg-black rounded-3xl overflow-hidden shadow-[0_24px_64px_rgba(0,0,0,0.9)] border border-white/10 ring-1 ring-inset ring-white/10">
                 <iframe
                   ref={iframeRef}
                   id="main-video-player"
                   src={getPlayerUrl()}
                   className="w-full h-full"
-                  allowFullScreen
-                  allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-                  frameBorder="0"
-                  title="Cinema Player"
-                />
-              </div>
-            )}
+                allowFullScreen
+                allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                frameBorder="0"
+                title="Cinema Player"
+              />
+            </div>
+          )}
 
-            {}
-            {showDisclaimer && (
-              <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 md:p-4 text-xs text-amber-500/80 mb-2 relative">
-                <button 
-                  onClick={() => setShowDisclaimer(false)}
-                  className="absolute top-2 right-2 p-1.5 bg-amber-500/10 hover:bg-amber-500/20 rounded-full transition-colors text-amber-500"
-                  title="Dismiss"
-                >
-                  <CloseIcon className="w-3.5 h-3.5" />
-                </button>
-                <div className="pr-6">
-                  <p className="font-bold text-amber-500 mb-1">Recommendations: Adblocker & VPN Info</p>
-                  <p className="mb-2">We highly recommend using an Adblocker (such as uBlock Origin) to prevent intrusive ads. <strong className="text-amber-400">If a video isn't loading while using a VPN, try changing the server from the dropdown above or disable the VPN, as some hosts block VPN traffic.</strong></p>
-                  <p className="text-[11px] opacity-80">Disclaimer: We do not host any of the media provided here. All videos are hosted and delivered by non-affiliated third-party servers.</p>
-                </div>
-              </div>
-            )}
-
-            {}
-            <div className="space-y-3">
-              <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-white leading-tight">
-                {type === 'tv' && currentEpData?.name 
-                  ? `${title} - S${season}:E${episode} "${currentEpData.name}"`
-                  : title}
-              </h1>
-
-              {}
-              <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-white/5">
-                {}
-                <div className="flex items-center gap-3">
-                  <button 
-                    onClick={() => {
-                      if (window.history.state && window.history.state.idx > 0) {
-                        navigate(-1);
-                      } else {
-                        navigate(`/${type}/${id}`, { replace: true });
-                      }
-                    }}
-                    className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
-                  >
-                    <div className="w-10 h-10 rounded-full overflow-hidden bg-white/5 border border-white/10 shrink-0">
-                      <LazyImage
-                        src={getImageUrl(details.poster_path, 'w500')}
-                        alt={title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="flex flex-col text-left">
-                      <span className="text-sm font-bold text-white leading-none">{title}</span>
-                      <span className="text-[11px] text-[#a3a3a3] mt-0.5">
-                        {releaseYear} • {details.vote_average?.toFixed(1)} ★ IMDb
-                      </span>
-                    </div>
-                  </button>
-                </div>
-
-                {}
-                <div className="flex items-center gap-2">
-                  {type === 'tv' && (
-                    <>
-                      <button
-                        onClick={goToPrevEpisode}
-                        disabled={!hasPrevEpisode}
-                        className={`btn-glass-beveled anim-btn flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold ${
-                          !hasPrevEpisode ? 'opacity-30 cursor-not-allowed' : ''
-                        }`}
-                      >
-                        <ChevronLeft className="w-3.5 h-3.5" />
-                        <span>Prev</span>
-                      </button>
-
-                      <button
-                        onClick={goToNextEpisode}
-                        disabled={!hasNextEpisode}
-                        className={`btn-beveled-solid anim-btn flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold ${
-                          !hasNextEpisode ? 'opacity-30 cursor-not-allowed' : ''
-                        }`}
-                      >
-                        <span>Next Ep</span>
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </button>
-                    </>
-                  )}
-                </div>
+          {showDisclaimer && (
+            <div className="bg-amber-500/[0.08] backdrop-blur-xl border border-amber-500/20 rounded-2xl p-4 text-xs text-amber-500/90 mb-2 relative shadow-[inset_0_1px_1px_rgba(245,158,11,0.2)]">
+              <button
+                onClick={() => setShowDisclaimer(false)}
+                className="absolute top-2.5 right-2.5 p-1.5 bg-amber-500/10 hover:bg-amber-500/20 rounded-full transition-colors text-amber-500 anim-icon"
+                title="Dismiss"
+              >
+                <CloseIcon className="w-3.5 h-3.5" />
+              </button>
+              <div className="pr-6">
+                <p className="font-bold text-amber-400 mb-1">Recommendations: Adblocker & VPN Info</p>
+                <p className="mb-2">We highly recommend using an Adblocker (such as uBlock Origin) to prevent intrusive ads. <strong className="text-amber-300">If a video isn't loading while using a VPN, try changing the server from the dropdown above or disable the VPN, as some hosts block VPN traffic.</strong></p>
+                <p className="text-[11px] opacity-80">Disclaimer: We do not host any of the media provided here. All videos are hosted and delivered by non-affiliated third-party servers.</p>
               </div>
             </div>
+          )}
 
             {}
-            <div 
-              onClick={() => setIsExpandedDesc(!isExpandedDesc)}
-              className="bg-white/[0.03] hover:bg-white/[0.05] border border-white/5 rounded-2xl p-4.5 transition-all cursor-pointer space-y-3 text-left group"
-            >
-              <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-white/90">
-                <ImdbBadge rating={details.vote_average} />
-                {details.runtime && (
-                  <span className="bg-white/5 px-2 py-0.5 rounded text-white/60">
-                    {Math.floor(details.runtime / 60)}h {details.runtime % 60}m
-                  </span>
+            {/* Title & Metadata Header */}
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <h1 className="text-xl lg:text-2xl font-black tracking-tight text-white leading-tight">
+                  {type === 'tv' && currentEpData?.name
+                    ? `${title} - S${season}:E${episode} "${currentEpData.name}"`
+                    : title}
+                </h1>
+
+                {type === 'tv' && (
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={goToPrevEpisode}
+                      disabled={!hasPrevEpisode}
+                      className={`btn-glass-beveled anim-btn flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold ${
+                        !hasPrevEpisode ? 'opacity-30 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                      <span>Prev</span>
+                    </button>
+
+                    <button
+                      onClick={goToNextEpisode}
+                      disabled={!hasNextEpisode}
+                      className={`btn-beveled-solid anim-btn flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold ${
+                        !hasNextEpisode ? 'opacity-30 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      <span>Next Ep</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 )}
-                {details.genres?.map(g => (
-                  <span key={g.id} className="bg-white/5 px-2 py-0.5 rounded text-white/70">
-                    #{g.name}
+              </div>
+
+              {/* Clean Unified Metadata Bar */}
+              <div className="flex flex-wrap items-center gap-2.5 pb-2 text-xs font-semibold text-white/90">
+                <ImdbBadge rating={details.vote_average} />
+                {getCertification() && <MpaaBadge rating={getCertification()} />}
+                {releaseYear && (
+                  <>
+                    <span className="text-white/30">•</span>
+                    <span className="tabular-nums text-white/70">{releaseYear}</span>
+                  </>
+                )}
+                {details.runtime && (
+                  <>
+                    <span className="text-white/30">•</span>
+                    <span className="tabular-nums text-white/70">
+                      {Math.floor(details.runtime / 60)}h {details.runtime % 60}m
+                    </span>
+                  </>
+                )}
+                {details.number_of_seasons && (
+                  <>
+                    <span className="text-white/30">•</span>
+                    <span className="tabular-nums text-white/70">
+                      {details.number_of_seasons} Season{details.number_of_seasons > 1 ? 's' : ''}
+                    </span>
+                  </>
+                )}
+                {details.genres?.slice(0, 3).map((g: any) => (
+                  <span key={g.id} className="badge-glass px-2.5 py-0.5 rounded-full text-[10px] text-white/80 font-medium">
+                    {g.name}
                   </span>
                 ))}
               </div>
+            </div>
 
+            {/* Overview & Cast Drawer */}
+            <div
+              onClick={() => setIsExpandedDesc(!isExpandedDesc)}
+              className="card-glass-debossed rounded-2xl p-4.5 transition-all cursor-pointer space-y-3 text-left group"
+            >
               {details.tagline && (
-                <p className="text-xs font-semibold italic text-[#a3a3a3]">
+                <p className="text-xs font-semibold italic text-white/60">
                   "{details.tagline}"
                 </p>
               )}
 
-              <p className={`text-xs md:text-sm font-medium text-[#a3a3a3] leading-relaxed ${
+              <p className={`text-xs md:text-sm font-normal text-white/80 leading-relaxed ${
                 isExpandedDesc ? '' : 'line-clamp-2'
               }`}>
                 {details.overview}
               </p>
 
-              <span className="text-xs font-bold text-white/60 group-hover:text-white transition-colors inline-block pt-1">
-                {isExpandedDesc ? 'Show less' : '...more'}
+              <span className="text-xs font-bold text-white/60 group-hover:text-white transition-colors inline-block pt-0.5">
+                {isExpandedDesc ? 'Show less' : 'Read more...'}
               </span>
 
-              {}
+              {/* Cast */}
               {isExpandedDesc && details.credits?.cast?.length > 0 && (
-                <div className="pt-4 border-t border-white/5 space-y-2">
-                  <h4 className="text-xs font-bold text-white/60 uppercase tracking-wider">Top Cast</h4>
-                  <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-1">
-                    {details.credits.cast.slice(0, 8).map(actor => (
+                <div className="pt-4 border-t border-white/5 space-y-2.5">
+                  <h4 className="text-xs font-bold text-white/50 uppercase tracking-wider">Top Cast</h4>
+                  <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar pb-1">
+                    {details.credits.cast.slice(0, 8).map((actor: any) => (
                       <div key={actor.id} className="flex items-center gap-2 bg-white/5 p-1.5 pr-3 rounded-xl shrink-0">
                         <div className="w-7 h-7 rounded-lg overflow-hidden bg-black/40 shrink-0">
                           {actor.profile_path ? (
@@ -598,7 +600,7 @@ export const WatchPage = () => {
                             </div>
                           )}
                         </div>
-                        <span className="text-xs font-semibold text-white/90 truncate max-w-[110px]">{actor.name}</span>
+                        <span className="text-xs font-medium text-white/90 truncate max-w-[110px]">{actor.name}</span>
                       </div>
                     ))}
                   </div>
@@ -606,24 +608,24 @@ export const WatchPage = () => {
               )}
             </div>
 
-            {}
-            {details.similar?.results?.length > 0 && (
-              <div className="space-y-4 pt-4">
-                <h3 className="text-base font-bold text-white tracking-tight">More Like This</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                  {details.similar.results.slice(0, 8).map((movie) => (
-                    <div
-                      key={movie.id}
-                      onClick={() => navigate(`/${type}/${movie.id}`)}
-                      className="relative aspect-[2/3] rounded-xl overflow-hidden cursor-pointer anim-poster"
-                    >
-                      <PosterImage
-                        src={getImageUrl(movie.poster_path, 'w500')}
-                        alt={movie.title || movie.name}
-                        className="w-full h-full object-cover"
+            {/* Similar Titles / More Like This Grid */}
+            {(type === 'tv' || isTheaterMode) && details.similar?.results?.filter((m: any) => m.poster_path).length > 0 && (
+              <div className="space-y-4 pt-6 border-t border-white/5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-bold text-white tracking-tight">More Like This</h3>
+                  <span className="text-xs text-white/40 font-medium">Recommended for you</span>
+                </div>
+                <div className={`grid ${landscapeSetting ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-2 gap-3.5'}`}>
+                  {details.similar.results
+                    .filter((m: any) => m.poster_path)
+                    .slice(0, 8)
+                    .map((movie: any) => (
+                      <MovieCard
+                        key={movie.id}
+                        movie={{ ...movie, media_type: movie.media_type || type }}
+                        className="w-full"
                       />
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </div>
             )}
@@ -632,7 +634,7 @@ export const WatchPage = () => {
 
           {}
           <div className={`${isTheaterMode ? 'lg:col-span-4' : 'lg:col-span-4 xl:col-span-4'} sticky top-16 space-y-3`}>
-            
+
             {}
             {type === 'tv' && (
               <div className="w-full space-y-3">
@@ -640,11 +642,11 @@ export const WatchPage = () => {
                 <div className="flex items-center justify-between pb-2 border-b border-white/5">
                   <div className="flex items-center gap-2">
                     <h2 className="text-sm font-bold text-white tracking-tight">Episodes</h2>
-                    <span className="text-[11px] text-[#a3a3a3] font-medium">
+                    <span className="text-[11px] text-text-secondary font-medium">
                       ({episodes.length})
                     </span>
                   </div>
-                  
+
                   {}
                   {details.number_of_seasons && details.number_of_seasons > 1 && (
                     <div className="relative">
@@ -654,7 +656,7 @@ export const WatchPage = () => {
                         className="appearance-none bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-3 pr-7 py-1 text-xs font-bold text-white focus:outline-none cursor-pointer"
                       >
                         {Array.from({ length: details.number_of_seasons }, (_, i) => i + 1).map((s) => (
-                          <option key={s} value={s} className="bg-[#0f1014] text-white">
+                          <option key={s} value={s} className="bg-[#121214] text-white">
                             Season {s}
                           </option>
                         ))}
@@ -674,8 +676,8 @@ export const WatchPage = () => {
                         key={ep.id}
                         onClick={() => navigate(`/watch/tv/${id}/${selectedSeason}/${ep.episode_number}`)}
                         className={`flex items-start gap-3 p-2 rounded-xl transition-all cursor-pointer group ${
-                          isPlaying 
-                            ? 'bg-white/[0.08] ring-1 ring-white/15' 
+                          isPlaying
+                            ? 'bg-white/[0.08] ring-1 ring-white/15'
                             : 'hover:bg-white/[0.04]'
                         }`}
                       >
@@ -714,7 +716,7 @@ export const WatchPage = () => {
 
                         {}
                         <div className="flex-1 min-w-0 pt-0.5">
-                          <span className="text-[10px] font-bold text-[#a3a3a3] uppercase tracking-wider block">
+                          <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider block">
                             Episode {ep.episode_number}
                           </span>
                           <h4 className={`text-xs font-bold line-clamp-2 leading-snug ${
@@ -723,7 +725,7 @@ export const WatchPage = () => {
                             {ep.name}
                           </h4>
                           {ep.overview && (
-                            <p className="text-[10px] text-[#a3a3a3] line-clamp-1 mt-1">
+                            <p className="text-[10px] text-text-secondary line-clamp-1 mt-1">
                               {ep.overview}
                             </p>
                           )}
@@ -736,34 +738,52 @@ export const WatchPage = () => {
             )}
 
             {}
-            {type === 'movie' && details.similar?.results?.length > 0 && (
+            {/* More Like This Sidebar for Movies */}
+            {type === 'movie' && !isTheaterMode && details.similar?.results?.filter((m: any) => m.poster_path).length > 0 && (
               <div className="w-full space-y-3">
                 <div className="flex items-center justify-between pb-2 border-b border-white/5">
-                  <h3 className="text-sm font-bold text-white tracking-tight">Related Videos</h3>
+                  <h3 className="text-sm font-bold text-white tracking-tight">More Like This</h3>
+                  <span className="text-xs text-white/40 font-medium">
+                    {details.similar.results.filter((m: any) => m.poster_path).length} titles
+                  </span>
                 </div>
 
                 <div className="space-y-2.5 max-h-[calc(100vh-140px)] overflow-y-auto no-scrollbar pr-1">
-                  {details.similar.results.slice(0, 15).map((movie) => (
+                  {details.similar.results.filter((m: any) => m.poster_path).slice(0, 12).map((movie: any) => (
                     <div
                       key={movie.id}
-                      onClick={() => navigate(`/${type}/${movie.id}`)}
-                      className="flex items-start gap-3 p-2 rounded-xl hover:bg-white/[0.04] transition-all cursor-pointer group"
+                      onClick={() => navigate(`/watch/movie/${movie.id}`)}
+                      className="flex items-start gap-3 p-2 rounded-2xl hover:bg-white/[0.06] transition-all cursor-pointer group card-glass-debossed"
                     >
-                      <div className="relative w-36 sm:w-40 aspect-video rounded-xl overflow-hidden bg-black/40 shrink-0">
-                        <PosterImage
+                      <div className="relative w-28 aspect-video rounded-xl overflow-hidden bg-black/40 shrink-0">
+                        <LazyImage
                           src={getImageUrl(movie.backdrop_path || movie.poster_path, 'w500')}
                           alt={movie.title || movie.name}
-                          className="w-full h-full object-cover transition-transform duration-300"
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          referrerPolicy="no-referrer"
                         />
+                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <Play className="w-4 h-4 text-white drop-shadow" />
+                        </div>
                       </div>
                       <div className="flex-1 min-w-0 pt-0.5">
-                        <h4 className="text-xs font-bold text-white line-clamp-2 leading-snug group-hover:text-accent transition-colors">
+                        <h4 className="text-xs font-bold text-white line-clamp-1 group-hover:text-accent transition-colors">
                           {movie.title || movie.name}
                         </h4>
-                        <span className="text-[10px] text-[#a3a3a3] flex items-center gap-1 mt-1">
-                          <Star className="w-3 h-3 text-yellow-500 fill-current" />
-                          {movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A'} • {movie.release_date?.split('-')[0] || ''}
-                        </span>
+                        <div className="flex items-center gap-1.5 mt-1 text-[11px] text-white/50">
+                          {movie.vote_average ? (
+                            <span className="flex items-center gap-1 text-white/80 font-bold">
+                              <Star className="w-3 h-3 text-[#f5c518] fill-current" />
+                              {movie.vote_average.toFixed(1)}
+                            </span>
+                          ) : null}
+                          {movie.release_date && (
+                            <>
+                              <span>•</span>
+                              <span>{movie.release_date.split('-')[0]}</span>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}

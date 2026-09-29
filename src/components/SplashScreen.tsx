@@ -1,21 +1,38 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export const SplashScreen = ({ onFinish }: { onFinish: () => void }) => {
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(() => {
+
+    if (typeof window !== 'undefined' && sessionStorage.getItem('splash_viewed')) {
+      return false;
+    }
+    return true;
+  });
   const [isRtl, setIsRtl] = useState(false);
 
+  const dismiss = () => {
+    sessionStorage.setItem('splash_viewed', 'true');
+    setIsVisible(false);
+    setTimeout(onFinish, 300);
+  };
+
   useEffect(() => {
-    
+    if (!isVisible) {
+      onFinish();
+      return;
+    }
+
     const dir = document.documentElement.dir || document.body.dir || window.getComputedStyle(document.body).direction;
     setIsRtl(dir === 'rtl');
 
     const timer = setTimeout(() => {
-      setIsVisible(false);
-      setTimeout(onFinish, 1000); 
-    }, 2800);
+      dismiss();
+    }, 1200);
     return () => clearTimeout(timer);
-  }, [onFinish]);
+  }, [isVisible, onFinish]);
+
+  if (!isVisible) return null;
 
   return (
     <AnimatePresence>
@@ -23,8 +40,9 @@ export const SplashScreen = ({ onFinish }: { onFinish: () => void }) => {
         <motion.div
           key="splash"
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0, transition: { duration: 0.8, ease: [0.32, 0.72, 0, 1] } }}
-          className="fixed inset-0 z-[99999] bg-[#030303] flex flex-col items-center justify-center pointer-events-auto"
+          exit={{ opacity: 0, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] } }}
+          onClick={dismiss}
+          className="fixed inset-0 z-[99999] bg-black flex flex-col items-center justify-center pointer-events-auto cursor-pointer"
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.95, filter: 'blur(10px)' }}
@@ -34,11 +52,11 @@ export const SplashScreen = ({ onFinish }: { onFinish: () => void }) => {
             className="relative flex flex-col items-center"
           >
             {}
-            <h1 
+            <h1
               className="text-4xl md:text-6xl font-black px-4 pb-2"
               style={{
-                letterSpacing: '-0.08em', 
-                
+                letterSpacing: '-0.08em',
+
                 background: 'linear-gradient(to right, #111111 35%, #ffffff 50%, #111111 65%)',
                 backgroundSize: '200% auto',
                 color: 'transparent',

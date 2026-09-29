@@ -29,6 +29,12 @@ export const HomePage = () => {
   const [comedyMovies, setComedyMovies] = useState<Movie[]>([]);
   const [sciFiMovies, setSciFiMovies] = useState<Movie[]>([]);
   const [documentaries, setDocumentaries] = useState<Movie[]>([]);
+  const [horrorMovies, setHorrorMovies] = useState<Movie[]>([]);
+  const [thrillerMovies, setThrillerMovies] = useState<Movie[]>([]);
+  const [romanceMovies, setRomanceMovies] = useState<Movie[]>([]);
+  const [crimeMovies, setCrimeMovies] = useState<Movie[]>([]);
+  const [fantasyMovies, setFantasyMovies] = useState<Movie[]>([]);
+  const [animeShows, setAnimeShows] = useState<Movie[]>([]);
 
   const [genreBackdrops, setGenreBackdrops] = useState<Record<string, string>>({});
   const [languageBackdrops, setLanguageBackdrops] = useState<Record<string, string>>({});
@@ -64,6 +70,12 @@ export const HomePage = () => {
           tmdbService.getMoviesByGenre(35, 2),
           tmdbService.getMoviesByGenre(878, 3),
           tmdbService.getMoviesByGenre(99, 2),
+          tmdbService.getMoviesByGenre(27, 2),
+          tmdbService.getMoviesByGenre(53, 2),
+          tmdbService.getMoviesByGenre(10749, 2),
+          tmdbService.getMoviesByGenre(80, 2),
+          tmdbService.getMoviesByGenre(14, 2),
+          tmdbService.getMoviesByLanguage('ja', 16, 2),
         ]);
 
         const [
@@ -78,7 +90,13 @@ export const HomePage = () => {
           actionData,
           comedyData,
           sciFiData,
-          docData
+          docData,
+          horrorData,
+          thrillerData,
+          romanceData,
+          crimeData,
+          fantasyData,
+          animeData
         ] = results.map(r => r.status === 'fulfilled' ? r.value : []);
 
         const [
@@ -93,7 +111,13 @@ export const HomePage = () => {
           dedupedAction,
           dedupedComedy,
           dedupedSciFi,
-          dedupedDoc
+          dedupedDoc,
+          dedupedHorror,
+          dedupedThriller,
+          dedupedRomance,
+          dedupedCrime,
+          dedupedFantasy,
+          dedupedAnime
         ] = deduplicateRows([
           recommendationData,
           trendingData,
@@ -106,7 +130,13 @@ export const HomePage = () => {
           actionData,
           comedyData,
           sciFiData,
-          docData
+          docData,
+          horrorData,
+          thrillerData,
+          romanceData,
+          crimeData,
+          fantasyData,
+          animeData
         ]);
 
         setRecommendations(dedupedRecs);
@@ -121,6 +151,12 @@ export const HomePage = () => {
         setComedyMovies(dedupedComedy);
         setSciFiMovies(dedupedSciFi);
         setDocumentaries(dedupedDoc);
+        setHorrorMovies(dedupedHorror);
+        setThrillerMovies(dedupedThriller);
+        setRomanceMovies(dedupedRomance);
+        setCrimeMovies(dedupedCrime);
+        setFantasyMovies(dedupedFantasy);
+        setAnimeShows(dedupedAnime);
 
         const apiGenres = await tmdbService.getGenres('movie').catch(() => []);
         const genres = apiGenres.slice(0, 10);
@@ -166,11 +202,20 @@ export const HomePage = () => {
 
   const fetchTrendingPage = useCallback((page: number) => tmdbService.getTrending('all', page), []);
   const fetchPopularMoviesPage = useCallback((page: number) => tmdbService.getPopularMovies(page), []);
+  const fetchNowPlayingPage = useCallback((page: number) => tmdbService.getNowPlayingMovies(page), []);
+  const fetchTopRatedPage = useCallback((page: number) => tmdbService.getTopRated(page), []);
+  const fetchOnTheAirPage = useCallback((page: number) => tmdbService.getOnTheAirTV(page), []);
   const fetchKidsShowsPage = useCallback((page: number) => tmdbService.getTVByGenre(16, page + 1), []);
   const fetchSciFiMoviesPage = useCallback((page: number) => tmdbService.getMoviesByGenre(878, page + 1), []);
   const fetchActionMoviesPage = useCallback((page: number) => tmdbService.getMoviesByGenre(28, page + 1), []);
   const fetchComedyMoviesPage = useCallback((page: number) => tmdbService.getMoviesByGenre(35, page + 1), []);
   const fetchDocumentariesPage = useCallback((page: number) => tmdbService.getMoviesByGenre(99, page), []);
+  const fetchHorrorMoviesPage = useCallback((page: number) => tmdbService.getMoviesByGenre(27, page + 1), []);
+  const fetchThrillerMoviesPage = useCallback((page: number) => tmdbService.getMoviesByGenre(53, page + 1), []);
+  const fetchRomanceMoviesPage = useCallback((page: number) => tmdbService.getMoviesByGenre(10749, page + 1), []);
+  const fetchCrimeMoviesPage = useCallback((page: number) => tmdbService.getMoviesByGenre(80, page + 1), []);
+  const fetchFantasyMoviesPage = useCallback((page: number) => tmdbService.getMoviesByGenre(14, page + 1), []);
+  const fetchAnimePage = useCallback((page: number) => tmdbService.getMoviesByLanguage('ja', 16, page + 1), []);
   const fetchPopularTVPage = useCallback((page: number) => tmdbService.getPopularTV(page), []);
 
   if (loading) {
@@ -179,26 +224,18 @@ export const HomePage = () => {
 
   return (
     <div>
-      <SEO 
-        title="Discover Movies & TV Shows" 
+      <SEO
+        title="Discover Movies & TV Shows"
         description="Explore thousands of movies and TV shows in HD."
       />
       <Hero movies={trending} />
-      
-      <div className="relative mt-8 md:mt-14 z-10 pb-28 space-y-8 md:space-y-10">
+
+      <div className="relative mt-4 md:mt-8 z-10 pb-20 space-y-3.5 md:space-y-5">
         {continueWatching.length > 0 && (
           <MovieRow
             title="Continue Watching"
             movies={continueWatching}
             isLandscape={true}
-          />
-        )}
-
-        {recommendations.length > 0 && (
-          <MovieRow
-            title="Recommended for You"
-            movies={recommendations}
-            isLandscape={false}
           />
         )}
 
@@ -208,7 +245,22 @@ export const HomePage = () => {
           fetchNextPage={fetchTrendingPage}
         />
 
+        {recommendations.length > 0 && (
+          <MovieRow
+            title="Recommended for You"
+            movies={recommendations}
+          />
+        )}
+
         <LatestTrailers />
+
+        {nowPlaying.length > 0 && (
+          <MovieRow
+            title="Now in Theaters & Fresh Releases"
+            movies={nowPlaying}
+            fetchNextPage={fetchNowPlayingPage}
+          />
+        )}
 
         <MovieRow
           title="Popular Movies"
@@ -250,11 +302,51 @@ export const HomePage = () => {
           fetchNextPage={fetchActionMoviesPage}
         />
 
+        {thrillerMovies.length > 0 && (
+          <MovieRow
+            title="Edge-of-Your-Seat Thrillers"
+            movies={thrillerMovies}
+            fetchNextPage={fetchThrillerMoviesPage}
+          />
+        )}
+
+        {topRated.length > 0 && (
+          <MovieRow
+            title="Critically Acclaimed Masterpieces"
+            movies={topRated}
+            fetchNextPage={fetchTopRatedPage}
+          />
+        )}
+
         <MovieRow
           title="Comedy"
           movies={comedyMovies}
           fetchNextPage={fetchComedyMoviesPage}
         />
+
+        {horrorMovies.length > 0 && (
+          <MovieRow
+            title="Chilling Horror"
+            movies={horrorMovies}
+            fetchNextPage={fetchHorrorMoviesPage}
+          />
+        )}
+
+        {animeShows.length > 0 && (
+          <MovieRow
+            title="Anime & Japanese Hits"
+            movies={animeShows}
+            fetchNextPage={fetchAnimePage}
+          />
+        )}
+
+        {crimeMovies.length > 0 && (
+          <MovieRow
+            title="Crime, Mob & Heists"
+            movies={crimeMovies}
+            fetchNextPage={fetchCrimeMoviesPage}
+          />
+        )}
 
         <CategoryRow title="Popular Genres" onTitleClick={() => navigate('/genres')}>
           {genresList.map(genre => (
@@ -267,11 +359,35 @@ export const HomePage = () => {
           ))}
         </CategoryRow>
 
+        {romanceMovies.length > 0 && (
+          <MovieRow
+            title="Romantic Favorites & Drama"
+            movies={romanceMovies}
+            fetchNextPage={fetchRomanceMoviesPage}
+          />
+        )}
+
+        {fantasyMovies.length > 0 && (
+          <MovieRow
+            title="Epic Fantasy & Myths"
+            movies={fantasyMovies}
+            fetchNextPage={fetchFantasyMoviesPage}
+          />
+        )}
+
         <MovieRow
           title="Documentaries"
           movies={documentaries}
           fetchNextPage={fetchDocumentariesPage}
         />
+
+        {onTheAir.length > 0 && (
+          <MovieRow
+            title="Currently Airing TV Hits"
+            movies={onTheAir}
+            fetchNextPage={fetchOnTheAirPage}
+          />
+        )}
 
         <MovieRow
           title="Popular TV Shows"

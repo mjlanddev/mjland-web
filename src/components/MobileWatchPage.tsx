@@ -1,9 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  ArrowLeft01Icon as ChevronLeft, 
+import {
+  ArrowLeft01Icon as ChevronLeft,
   ArrowRight01Icon as ChevronRight,
-  PlayIcon as Play, 
+  PlayIcon as Play,
   Share01Icon as Share2,
   Tv01Icon as TvIcon,
   ArrowDown01Icon as ChevronDown,
@@ -16,6 +16,9 @@ import { getImageUrl } from '../services/tmdbService';
 import { LazyImage } from './LazyImage';
 import { PosterImage } from './PosterImage';
 import { ImdbBadge } from './ImdbBadge';
+import { MpaaBadge } from './MpaaBadge';
+import { MovieCard } from './MovieRow';
+import { storageService } from '../services/storageService';
 
 interface MobileWatchPageProps {
   details: any;
@@ -66,6 +69,18 @@ export const MobileWatchPage: React.FC<MobileWatchPageProps> = ({
   const [showDisclaimer, setShowDisclaimer] = useState(true);
   const iframeRef = React.useRef<HTMLIFrameElement>(null);
 
+  const getCertification = () => {
+    if (!details) return '';
+    if (type === 'tv' && details.content_ratings) {
+      const r = details.content_ratings.results?.find((c: any) => c.iso_3166_1 === 'IN' || c.iso_3166_1 === 'US');
+      return r?.rating || '';
+    } else if (type === 'movie' && details.release_dates) {
+      const r = details.release_dates.results?.find((c: any) => c.iso_3166_1 === 'IN' || c.iso_3166_1 === 'US');
+      return r?.release_dates?.[0]?.certification || '';
+    }
+    return '';
+  };
+
   const handleFullscreen = () => {
     const el = iframeRef.current as any;
     if (!el) return;
@@ -113,6 +128,14 @@ export const MobileWatchPage: React.FC<MobileWatchPageProps> = ({
     };
   }, []);
 
+  const [landscapeSetting, setLandscapeSetting] = useState(() => storageService.isLandscapePosterEnabled());
+
+  useEffect(() => {
+    const handleLandscape = () => setLandscapeSetting(storageService.isLandscapePosterEnabled());
+    window.addEventListener('landscapePosterSettingUpdated', handleLandscape);
+    return () => window.removeEventListener('landscapePosterSettingUpdated', handleLandscape);
+  }, []);
+
   useEffect(() => {
     if (type === 'tv' && episode && episodes.length > 0) {
       const timeoutId = setTimeout(() => {
@@ -126,11 +149,11 @@ export const MobileWatchPage: React.FC<MobileWatchPageProps> = ({
   }, [type, episode, episodes, season]);
 
   return (
-    <div className="min-h-screen bg-bg text-white pb-28 relative overflow-x-hidden font-sans selection:bg-accent/30">
-      
+    <div className="min-h-screen bg-black text-white pb-28 relative overflow-x-hidden font-sans selection:bg-accent/30">
+
       {}
-      <div className="sticky top-0 inset-x-0 z-50 flex items-center justify-between px-4 py-2.5 bg-bg/90 backdrop-blur-2xl border-b border-white/5">
-        <button 
+      <div className="sticky top-0 inset-x-0 z-50 flex items-center justify-between px-4 py-2.5 bg-black/90 backdrop-blur-2xl border-b border-white/5">
+        <button
           onClick={() => {
             navigate(`/${type}/${id}`);
           }}
@@ -150,23 +173,22 @@ export const MobileWatchPage: React.FC<MobileWatchPageProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          <button 
+          <button
             onClick={handleFullscreen}
             title="Enter Fullscreen"
             className="btn-glass-beveled anim-icon p-2 rounded-xl text-white"
           >
             <FullscreenIcon className="w-4 h-4" />
           </button>
-          <button 
+          <button
             onClick={handleShare}
             className="btn-glass-beveled anim-icon p-2 rounded-xl text-white"
           >
-            {copied ? <CheckIcon className="w-4 h-4 text-emerald-400" /> : <Share2 className="w-4 h-4" />}
+            {copied ? <CheckIcon className="w-4 h-4 text-accent" /> : <Share2 className="w-4 h-4" />}
           </button>
         </div>
       </div>
 
-      {/* 2. Docked 16:9 Video Canvas */}
       <div className="w-full aspect-video bg-black relative z-10 shadow-2xl group/player">
         <iframe
           ref={iframeRef}
@@ -179,13 +201,11 @@ export const MobileWatchPage: React.FC<MobileWatchPageProps> = ({
         />
       </div>
 
-      {/* 3. Primary Show Info & Quick Actions */}
       <div className="px-4 pt-4 space-y-4">
-        
-        {/* Adblocker / VPN / Hosting Disclaimer */}
+
         {showDisclaimer && (
           <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-[11px] text-amber-500/80 relative">
-            <button 
+            <button
               onClick={() => setShowDisclaimer(false)}
               className="absolute top-2 right-2 p-1.5 bg-amber-500/10 hover:bg-amber-500/20 rounded-full transition-colors text-amber-500"
               title="Dismiss"
@@ -199,22 +219,23 @@ export const MobileWatchPage: React.FC<MobileWatchPageProps> = ({
             </div>
           </div>
         )}
-        
+
         {}
         <div className="space-y-2">
           <div className="flex items-start justify-between gap-3">
             <div>
               <h1 className="text-xl font-bold tracking-tight text-white">{title}</h1>
-              <div className="flex items-center gap-2 mt-1">
+              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                 <ImdbBadge rating={details.vote_average} />
-                {releaseYear && <span className="text-xs font-semibold text-[#a3a3a3]">{releaseYear}</span>}
+                {getCertification() && <MpaaBadge rating={getCertification()} />}
+                {releaseYear && <span className="text-xs font-semibold text-white/60">{releaseYear}</span>}
                 {details.runtime && (
-                  <span className="text-xs font-semibold text-[#a3a3a3]">
+                  <span className="text-xs font-semibold text-white/60">
                     • {Math.floor(details.runtime / 60)}h {details.runtime % 60}m
                   </span>
                 )}
                 {details.number_of_seasons && (
-                  <span className="text-xs font-semibold text-[#a3a3a3]">
+                  <span className="text-xs font-semibold text-white/60">
                     • {details.number_of_seasons} Seasons
                   </span>
                 )}
@@ -226,7 +247,7 @@ export const MobileWatchPage: React.FC<MobileWatchPageProps> = ({
               onClick={() => setShowServerModal(true)}
               className="btn-glass-beveled anim-btn flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold shrink-0"
             >
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span className="w-2 h-2 rounded-full bg-accent" />
               <span className="text-white/80">{activeServer.name.split('•')[0].trim()}</span>
               <ChevronDown className="w-3 h-3 text-white/40" />
             </button>
@@ -234,7 +255,7 @@ export const MobileWatchPage: React.FC<MobileWatchPageProps> = ({
 
           {}
           {details.overview && (
-            <p 
+            <p
               onClick={() => setIsExpandedOverview(!isExpandedOverview)}
               className={`text-xs font-medium text-[#a3a3a3] leading-relaxed cursor-pointer ${
                 isExpandedOverview ? '' : 'line-clamp-2'
@@ -377,23 +398,21 @@ export const MobileWatchPage: React.FC<MobileWatchPageProps> = ({
         )}
 
         {}
-        {details.similar?.results?.length > 0 && (
+        {/* Similar Titles / More Like This */}
+        {details.similar?.results?.filter((m: any) => m.poster_path).length > 0 && (
           <div className="space-y-3 pt-6 border-t border-white/5">
-            <h3 className="text-xs font-bold text-[#a3a3a3] uppercase tracking-wider">More Like This</h3>
-            <div className="grid grid-cols-3 gap-2.5">
-              {details.similar.results.slice(0, 9).map((movie: any) => (
-                <div
-                  key={movie.id}
-                  onClick={() => navigate(`/${type}/${movie.id}`)}
-                  className="relative aspect-[2/3] rounded-xl overflow-hidden anim-poster"
-                >
-                  <PosterImage
-                    src={getImageUrl(movie.poster_path, 'w500')}
-                    alt={movie.title || movie.name}
-                    className="w-full h-full object-cover"
+            <h3 className="text-xs font-bold text-white/50 uppercase tracking-wider">More Like This</h3>
+            <div className={`grid ${landscapeSetting ? 'grid-cols-1 sm:grid-cols-2 gap-3' : 'grid-cols-3 gap-2.5'}`}>
+              {details.similar.results
+                .filter((m: any) => m.poster_path)
+                .slice(0, 9)
+                .map((movie: any) => (
+                  <MovieCard
+                    key={movie.id}
+                    movie={{ ...movie, media_type: movie.media_type || type }}
+                    className="w-full"
                   />
-                </div>
-              ))}
+                ))}
             </div>
           </div>
         )}
@@ -401,46 +420,61 @@ export const MobileWatchPage: React.FC<MobileWatchPageProps> = ({
       </div>
 
       {}
+      {/* Enhanced Apple Liquid Glass Server Bottom Sheet */}
       <AnimatePresence>
         {showServerModal && (
           <div className="fixed inset-0 z-[100] flex flex-col justify-end">
-            {}
+            {/* Backdrop Blur */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               onClick={() => setShowServerModal(false)}
-              className="absolute inset-0 bg-black/80 cursor-pointer"
+              className="absolute inset-0 bg-black/80 backdrop-blur-md cursor-pointer"
             />
 
-            {}
+            {/* Sheet Card */}
             <motion.div
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
-              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-              className="relative w-full max-w-md mx-auto bg-[#13141a] border-t border-white/10 rounded-t-[28px] px-5 pt-3 pb-8 space-y-3.5 shadow-2xl z-10 will-change-transform transform-gpu"
+              transition={{ type: "spring", damping: 30, stiffness: 350 }}
+              drag="y"
+              dragConstraints={{ top: 0 }}
+              dragElastic={0.2}
+              onDragEnd={(_, info) => {
+                if (info.offset.y > 90) setShowServerModal(false);
+              }}
+              className="relative w-full max-w-lg mx-auto liquid-dock border-t border-white/10 rounded-t-[32px] px-5 pt-3 pb-[max(2rem,env(safe-area-inset-bottom,2rem))] space-y-4 shadow-[0_-20px_60px_rgba(0,0,0,0.95)] z-10 backdrop-blur-2xl bg-[#090a0f]/95 touch-pan-y"
             >
-              {}
-              <div className="w-10 h-1 bg-white/20 rounded-full mx-auto" />
+              {/* Grabber Handle */}
+              <div className="w-10 h-1.5 bg-white/20 hover:bg-white/30 rounded-full mx-auto cursor-grab active:cursor-grabbing transition-colors" />
 
-              {}
-              <div className="flex items-center justify-between pt-1">
+              {/* Sheet Header */}
+              <div className="flex items-center justify-between pt-0.5">
                 <div>
-                  <h3 className="text-sm font-bold text-white tracking-tight">Select Server</h3>
-                  <p className="text-[11px] text-white/50 font-medium">Choose a stream source for optimal speed</p>
+                  <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
+                    Select Server
+                    <span className="text-[10px] font-semibold text-white/40 tracking-normal px-2 py-0.5 rounded-full bg-white/5 border border-white/5">
+                      {SERVERS.length} Sources
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-white/50 font-medium mt-0.5">
+                    Switch servers if stream is buffering or unavailable
+                  </p>
                 </div>
-                <button 
+                <button
                   onClick={() => setShowServerModal(false)}
-                  className="p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+                  className="btn-glass-beveled p-2 rounded-full text-white/60 hover:text-white transition-colors"
+                  aria-label="Close server picker"
                 >
-                  <ChevronDown className="w-4 h-4" />
+                  <CloseIcon className="w-3.5 h-3.5" />
                 </button>
               </div>
 
-              {}
-              <div className="divide-y divide-white/5 rounded-2xl bg-white/[0.03] border border-white/5 overflow-hidden max-h-72 overflow-y-auto no-scrollbar">
+              {/* Server List */}
+              <div className="flex flex-col gap-2 max-h-[50vh] overflow-y-auto no-scrollbar py-0.5">
                 {SERVERS.map((server) => {
                   const isActive = activeServer.name === server.name;
                   return (
@@ -450,27 +484,45 @@ export const MobileWatchPage: React.FC<MobileWatchPageProps> = ({
                         setActiveServer(server);
                         setShowServerModal(false);
                       }}
-                      className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors active:bg-white/15 ${
-                        isActive ? 'bg-white/[0.08]' : 'hover:bg-white/[0.04]'
+                      className={`w-full flex items-center justify-between p-3 rounded-2xl transition-all duration-150 active:scale-[0.98] cursor-pointer text-left ${
+                        isActive
+                          ? 'glass-debossed text-white font-bold ring-1 ring-white/15 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]'
+                          : 'bg-white/[0.03] hover:bg-white/[0.06] text-white/70 border border-white/5'
                       }`}
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className={`w-2 h-2 rounded-full shrink-0 ${isActive ? 'bg-emerald-400 shadow-sm shadow-emerald-400' : 'bg-white/20'}`} />
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                          isActive ? 'bg-white text-black shadow-md' : 'bg-white/5 text-white/40'
+                        }`}>
+                          <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                        </div>
                         <div className="min-w-0">
-                          <span className={`text-xs font-bold block truncate ${isActive ? 'text-white' : 'text-white/80'}`}>
-                            {server.name}
-                          </span>
-                          <span className="text-[10px] text-white/40 block truncate">
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs font-bold truncate ${isActive ? 'text-white' : 'text-white/90'}`}>
+                              {server.name}
+                            </span>
+                            {isActive && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                            )}
+                          </div>
+                          <span className="text-[10px] text-white/40 block truncate mt-0.5 font-medium">
                             {server.lang} • {server.tag}
                           </span>
                         </div>
                       </div>
 
-                      {isActive && (
-                        <div className="w-5 h-5 rounded-full bg-white text-black flex items-center justify-center shrink-0 ml-2 shadow-md">
-                          <CheckIcon className="w-3 h-3" />
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2 shrink-0 ml-2">
+                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-lg ${
+                          isActive ? 'bg-white text-black font-black' : 'badge-glass text-white/60'
+                        }`}>
+                          {server.tag.split('•')[0].trim()}
+                        </span>
+                        {isActive && (
+                          <div className="w-5 h-5 rounded-full bg-white text-black flex items-center justify-center shadow-md">
+                            <CheckIcon className="w-3.5 h-3.5 stroke-[2.5]" />
+                          </div>
+                        )}
+                      </div>
                     </button>
                   );
                 })}

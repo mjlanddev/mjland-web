@@ -4,6 +4,7 @@ import { tmdbService } from '../services/tmdbService';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search01Icon as SearchIcon, Cancel01Icon as X } from 'hugeicons-react';
 import { LoadingSpinner } from './LoadingSpinner';
+import { SEO } from './SeoComponent';
 
 export const LanguagesPage = () => {
   const [languages, setLanguages] = useState<any[]>([]);
@@ -15,11 +16,11 @@ export const LanguagesPage = () => {
     const fetchAllLanguages = async () => {
       try {
         const allLangs = await tmdbService.getLanguages();
-        
+
         const sortedLangs = allLangs
           .filter((l: any) => l.english_name)
           .sort((a: any, b: any) => a.english_name.localeCompare(b.english_name));
-          
+
         setLanguages(sortedLangs);
       } catch (error) {
       } finally {
@@ -33,8 +34,8 @@ export const LanguagesPage = () => {
   const filteredLanguages = useMemo(() => {
     if (!searchQuery.trim()) return languages;
     const q = searchQuery.toLowerCase();
-    return languages.filter(l => 
-      l.english_name.toLowerCase().includes(q) || 
+    return languages.filter(l =>
+      l.english_name.toLowerCase().includes(q) ||
       (l.name && l.name.toLowerCase().includes(q)) ||
       l.iso_639_1.toLowerCase().includes(q)
     );
@@ -65,19 +66,22 @@ export const LanguagesPage = () => {
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       className="min-h-screen pt-16 md:pt-20 px-4 md:px-8 pb-20 max-w-7xl mx-auto"
     >
-      {/* Header section */}
+      <SEO
+        title="Explore Languages"
+        description="Browse movies and TV series from across the globe in any dialect."
+      />
+
       <div className="mb-8 md:mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-white/10 pb-6">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white">Languages</h1>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-white/10 text-white/80 border border-white/10">
+            <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white text-balance">Languages</h1>
+            <span className="badge-glass px-2.5 py-0.5 rounded-full text-xs font-bold text-white/80 tabular-nums">
               {filteredLanguages.length}
             </span>
           </div>
-          <p className="text-white/60 text-sm md:text-base font-medium">Browse movies and series from across the globe in any dialect.</p>
+          <p className="text-white/60 text-sm md:text-base font-medium text-pretty">Browse movies and series from across the globe in any dialect.</p>
         </div>
 
-        {/* Search */}
         <div className="relative w-full md:w-72">
           <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40 w-4 h-4" />
           <input
@@ -85,12 +89,12 @@ export const LanguagesPage = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search languages..."
-            className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-10 pr-9 text-xs md:text-sm font-medium text-white placeholder:text-white/30 focus:border-white/20 focus:ring-1 focus:ring-white/10 transition-all outline-none"
+            className="input-glass-debossed w-full rounded-xl py-2 pl-10 pr-9 text-xs md:text-sm font-medium text-white placeholder:text-white/30 focus:outline-none transition-all"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-white/40 hover:text-white transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-white/40 hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -98,9 +102,8 @@ export const LanguagesPage = () => {
         </div>
       </div>
 
-      {/* Alphabet Quick Nav */}
       {!searchQuery && letters.length > 1 && (
-        <div className="flex flex-wrap gap-1 mb-10 p-2 bg-white/[0.02] border border-white/5 rounded-2xl">
+        <div className="flex flex-wrap gap-1 mb-10 p-2 glass-debossed rounded-2xl">
           {letters.map((letter) => (
             <a
               key={letter}
@@ -113,12 +116,11 @@ export const LanguagesPage = () => {
         </div>
       )}
 
-      {/* Grouped language cards */}
       <div className="space-y-12">
         {letters.map((letter) => {
           const langs = groupedLanguages[letter];
           return (
-            <motion.div 
+            <motion.div
               key={letter}
               id={`section-${letter}`}
               initial={{ opacity: 0, y: 16 }}
@@ -133,16 +135,16 @@ export const LanguagesPage = () => {
                   {langs.length} {langs.length === 1 ? 'Language' : 'Languages'}
                 </span>
               </div>
-              
+
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 md:gap-3.5">
                 {langs.map((lang: any) => (
                   <motion.div
                     key={lang.iso_639_1}
-                    whileHover={{ y: -3, scale: 1.02 }}
+                    whileHover={{ y: -3 }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ duration: 0.2 }}
                     onClick={() => navigate(`/language/${lang.iso_639_1}`)}
-                    className="cursor-pointer group bg-white/[0.03] hover:bg-white/[0.08] rounded-xl p-3.5 transition-all border border-white/5 hover:border-white/20 shadow-md flex flex-col justify-between"
+                    className="cursor-pointer group card-glass-debossed rounded-2xl p-4 flex flex-col justify-between"
                   >
                     <div>
                       <h3 className="font-bold text-sm text-white group-hover:text-accent transition-colors truncate">
@@ -174,4 +176,3 @@ export const LanguagesPage = () => {
     </motion.div>
   );
 };
-

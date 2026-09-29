@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { tmdbService, getImageUrl } from '../services/tmdbService';
 import { Movie } from '../types';
 import { MovieCard } from './MovieRow';
-import { Helmet } from 'react-helmet-async';
+import { SEO } from './SeoComponent';
 import { LoadingSpinner } from './LoadingSpinner';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft01Icon as ChevronLeftRegular } from 'hugeicons-react';
 import { TMDB_CONFIG } from '../config/tmdbConfig';
 
 import { LazyImage } from './LazyImage';
+import { storageService } from '../services/storageService';
 
 export const GenreDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,34 +19,62 @@ export const GenreDetails = () => {
   const [tvShows, setTvShows] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [backdrop, setBackdrop] = useState('');
+  const [landscapeSetting, setLandscapeSetting] = useState(() => storageService.isLandscapePosterEnabled());
   const [genreName, setGenreName] = useState('');
   const [activeTab, setActiveTab] = useState<'movies' | 'tv'>('movies');
   const [moviePage, setMoviePage] = useState(1);
   const [tvPage, setTvPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const handleLoadMore = async () => {
-    if (!id) return;
+  const handleLoadMore = useCallback(async () => {
+    if (!id || loadingMore) return;
     setLoadingMore(true);
     try {
       if (activeTab === 'movies') {
         const next = moviePage + 1;
         const newMovies = await tmdbService.getMoviesByGenre(parseInt(id), next);
-        setMovies(prev => [...prev, ...newMovies]);
+        setMovies(prev => {
+          const seen = new Set(prev.map(p => p.id));
+          const added = newMovies.filter(m => !seen.has(m.id));
+          return [...prev, ...added];
+        });
         setMoviePage(next);
       } else {
         const next = tvPage + 1;
         const newTv = await tmdbService.getTVByGenre(parseInt(id), next);
-        setTvShows(prev => [...prev, ...newTv]);
+        setTvShows(prev => {
+          const seen = new Set(prev.map(p => p.id));
+          const added = newTv.filter(t => !seen.has(t.id));
+          return [...prev, ...added];
+        });
         setTvPage(next);
       }
     } finally {
       setLoadingMore(false);
     }
-  };
+  }, [id, loadingMore, activeTab, moviePage, tvPage]);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          handleLoadMore();
+        }
+      },
+      { rootMargin: '400px' }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [handleLoadMore]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    const handleLandscape = () => setLandscapeSetting(storageService.isLandscapePosterEnabled());
+    window.addEventListener('landscapePosterSettingUpdated', handleLandscape);
+
     const fetchData = async () => {
       if (!id) return;
       const genreId = parseInt(id);
@@ -57,14 +86,14 @@ export const GenreDetails = () => {
           tmdbService.getGenres('movie'),
           tmdbService.getGenres('tv')
         ]);
-        
+
         setMovies(movieData);
         setTvShows(tvData);
-        
+
         const genre = [...apiMovieGenres, ...apiTvGenres].find((g: any) => g.id === genreId);
         if (genre) setGenreName(genre.name);
         else setGenreName('');
-        
+
         if (movieData.length > 0) {
           setBackdrop(getImageUrl(movieData[0].backdrop_path || movieData[0].poster_path, 'original'));
         } else if (tvData.length > 0) {
@@ -82,6 +111,9 @@ export const GenreDetails = () => {
       }
     };
     fetchData();
+    return () => {
+      window.removeEventListener('landscapePosterSettingUpdated', handleLandscape);
+    };
   }, [id]);
 
   if (loading) {
@@ -89,9 +121,13 @@ export const GenreDetails = () => {
   }
 
   return (
-    <div className="min-h-screen bg-bg">
+    <div className="min-h-screen bg-black">
+      <SEO
+        title={genreName ? `${genreName} Movies & TV Shows` : 'Genre Details'}
+        description={genreName ? `Explore the best of ${genreName} cinema and television.` : 'Explore movies and TV shows by genre.'}
+      />
       <div className="relative h-[45vh] md:h-[60vh] w-full overflow-hidden">
-        <motion.div 
+        <motion.div
           initial={{ scale: 1.08, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
@@ -103,8 +139,8 @@ export const GenreDetails = () => {
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/50 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-bg via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-transparent" />
         </motion.div>
 
         <div className="absolute top-0 left-0 w-full px-4 md:px-6 pt-6 md:pt-8 z-20">
@@ -113,7 +149,8 @@ export const GenreDetails = () => {
             animate={{ opacity: 1, x: 0 }}
             whileHover={{ x: -4 }}
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-white/80 hover:text-white transition-colors group w-fit anim-btn bg-black/40 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10"
+            className="flex items-center gap-2 text-white/80 hover:text-white transition-colors group w-fit btn-glass-beveled px-4 py-2 rounded-full cursor-pointer"
+            aria-label="Go back"
           >
             <ChevronLeftRegular className="w-5 h-5 text-white" />
             <span className="text-xs font-bold uppercase tracking-wider">Back</span>
@@ -125,7 +162,7 @@ export const GenreDetails = () => {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="text-4xl md:text-7xl lg:text-8xl font-black text-white tracking-tighter mb-2 md:mb-4 drop-shadow-2xl"
+            className="text-4xl md:text-7xl lg:text-8xl font-black text-white tracking-tighter mb-2 md:mb-4 drop-shadow-2xl text-balance"
           >
             {genreName}
           </motion.h1>
@@ -134,7 +171,7 @@ export const GenreDetails = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.5 }}
-              className="text-xs sm:text-sm md:text-lg text-white/70 max-w-2xl font-medium line-clamp-2 md:line-clamp-none leading-relaxed drop-shadow"
+              className="text-xs sm:text-sm md:text-lg text-white/70 max-w-2xl font-medium line-clamp-2 md:line-clamp-none leading-relaxed drop-shadow text-pretty"
             >
               Explore the best of {genreName} cinema and television, from blockbuster movies to trending series.
             </motion.p>
@@ -145,19 +182,19 @@ export const GenreDetails = () => {
       <div className="relative z-10 -mt-8 md:-mt-20 pb-20 px-4 md:px-8">
         {movies.length > 0 && tvShows.length > 0 && (
           <div className="flex flex-col items-center mb-10">
-            <div className="flex items-center gap-2 bg-black/50 backdrop-blur-xl p-1.5 rounded-full border border-white/10 shadow-2xl">
+            <div className="flex items-center gap-1.5 glass-debossed p-1.5 rounded-full shadow-2xl">
               <button
                 onClick={() => setActiveTab('movies')}
-                className={`px-7 py-2 rounded-full text-xs md:text-sm font-black transition-all duration-300 ${
-                  activeTab === 'movies' ? 'bg-white text-black shadow-lg scale-100' : 'text-white/60 hover:text-white scale-95'
+                className={`px-7 py-2 rounded-full text-xs md:text-sm font-bold transition-all duration-300 cursor-pointer ${
+                  activeTab === 'movies' ? 'btn-beveled-solid shadow-lg scale-100' : 'text-white/60 hover:text-white scale-95'
                 }`}
               >
                 Movies
               </button>
               <button
                 onClick={() => setActiveTab('tv')}
-                className={`px-7 py-2 rounded-full text-xs md:text-sm font-black transition-all duration-300 ${
-                  activeTab === 'tv' ? 'bg-white text-black shadow-lg scale-100' : 'text-white/60 hover:text-white scale-95'
+                className={`px-7 py-2 rounded-full text-xs md:text-sm font-bold transition-all duration-300 cursor-pointer ${
+                  activeTab === 'tv' ? 'btn-beveled-solid shadow-lg scale-100' : 'text-white/60 hover:text-white scale-95'
                 }`}
               >
                 TV Shows
@@ -173,7 +210,7 @@ export const GenreDetails = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
             transition={{ duration: 0.3 }}
-            className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-2.5 md:gap-4"
+            className={`grid ${landscapeSetting ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3 gap-5 md:gap-6' : 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-2.5 md:gap-4'}`}
           >
             {(activeTab === 'movies' ? movies : tvShows).map((item, index) => (
               <motion.div
@@ -188,12 +225,14 @@ export const GenreDetails = () => {
           </motion.div>
         </AnimatePresence>
 
+        <div ref={sentinelRef} className="h-10 w-full pointer-events-none" />
+
         {((activeTab === 'movies' && movies.length > 0) || (activeTab === 'tv' && tvShows.length > 0)) && (
-          <div className="mt-16 flex justify-center">
+          <div className="mt-8 flex justify-center">
             <button
               onClick={handleLoadMore}
               disabled={loadingMore}
-              className="px-10 py-3 bg-white/10 hover:bg-white/20 text-white rounded-full font-bold transition-all duration-300 disabled:opacity-50 disabled:scale-95 active:scale-95 border border-white/5 shadow-lg"
+              className="btn-glass-beveled px-10 py-3 rounded-full font-bold text-xs md:text-sm shadow-lg disabled:opacity-50"
             >
               {loadingMore ? (
                 <div className="flex items-center gap-2">

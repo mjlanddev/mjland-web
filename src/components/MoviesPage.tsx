@@ -25,13 +25,13 @@ export const MoviesPage = () => {
   const [comedyMovies, setComedyMovies] = useState<Movie[]>([]);
   const [documentaries, setDocumentaries] = useState<Movie[]>([]);
   const [romanceMovies, setRomanceMovies] = useState<Movie[]>([]);
-  
+
   const [genreBackdrops, setGenreBackdrops] = useState<Record<string, string>>({});
   const [languageBackdrops, setLanguageBackdrops] = useState<Record<string, string>>({});
-  
+
   const [genresList, setGenresList] = useState<any[]>([]);
   const [languagesList, setLanguagesList] = useState<any[]>([]);
-  
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export const MoviesPage = () => {
           tmdbService.getMoviesByGenre(99, 2),
           tmdbService.getMoviesByGenre(10749, 2)
         ]);
-        
+
         const [
           recommendationsData,
           trendingData,
@@ -60,7 +60,7 @@ export const MoviesPage = () => {
           documentaryData,
           romanceData
         ] = results.map(r => r.status === 'fulfilled' ? r.value : []);
-        
+
         const [
           dedupedRecs,
           dedupedTrending,
@@ -115,7 +115,7 @@ export const MoviesPage = () => {
           .map(code => allLangs.find((l: any) => l.iso_639_1 === code))
           .filter(Boolean);
         setLanguagesList(languages);
-        
+
         const langResultsRaw = await Promise.allSettled(languages.map((l: any) => tmdbService.getMoviesByLanguage(l.iso_639_1)));
         const langResults = langResultsRaw.map(r => r.status === 'fulfilled' ? r.value : []);
         const langMap: Record<string, string> = {};
@@ -142,35 +142,34 @@ export const MoviesPage = () => {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-      <SEO 
-        title="Movies" 
+      <SEO
+        title="Movies"
         description="Browse our vast collection of HD movies and discover cinematic masterpieces."
       />
       <Hero movies={trending} />
-      
-      <div className="relative mt-0 md:mt-4 z-10 pb-20 space-y-6 md:space-y-8">
+
+      <div className="relative mt-0 md:mt-4 z-10 pb-20 space-y-3.5 md:space-y-5">
+        <FadeSection>
+          <MovieRow
+            title="Trending Movies"
+            movies={trending.slice(1)}
+            fetchNextPage={(page) => tmdbService.getTrending('movie', page)}
+          />
+        </FadeSection>
+
         {recommendations.length > 0 && (
           <FadeSection>
-            <MovieRow 
-              title="Recommended for You" 
+            <MovieRow
+              title="Recommended for You"
               movies={recommendations}
-              isLandscape={false}
             />
           </FadeSection>
         )}
 
         <FadeSection>
-          <MovieRow 
-            title="Trending Movies" 
-            movies={trending.slice(1)} 
-            fetchNextPage={(page) => tmdbService.getTrending('movie', page)}
-          />
-        </FadeSection>
-
-        <FadeSection>
-          <MovieRow 
-            title="Popular Movies" 
-            movies={popular} 
+          <MovieRow
+            title="Popular Movies"
+            movies={popular}
             fetchNextPage={(page) => tmdbService.getPopularMovies(page)}
           />
         </FadeSection>
@@ -178,29 +177,29 @@ export const MoviesPage = () => {
         <FadeSection>
           <CategoryRow title="Popular Languages" onTitleClick={() => navigate('/languages')}>
             {languagesList.map(lang => (
-              <CategoryCard 
+              <CategoryCard
                 key={lang.iso_639_1}
-                title={lang.english_name} 
-                subtitle={lang.name} 
-                image={languageBackdrops[lang.english_name]} 
-                onClick={() => navigate(`/language/${lang.iso_639_1}`)} 
+                title={lang.english_name}
+                subtitle={lang.name}
+                image={languageBackdrops[lang.english_name]}
+                onClick={() => navigate(`/language/${lang.iso_639_1}`)}
               />
             ))}
           </CategoryRow>
         </FadeSection>
 
         <FadeSection>
-          <MovieRow 
-            title="Comedy" 
-            movies={comedyMovies} 
+          <MovieRow
+            title="Comedy"
+            movies={comedyMovies}
             fetchNextPage={(page) => tmdbService.getMoviesByGenre(35, page + 1)}
           />
         </FadeSection>
 
         <FadeSection>
-          <MovieRow 
-            title="Action Movies" 
-            movies={actionMovies} 
+          <MovieRow
+            title="Action Movies"
+            movies={actionMovies}
             fetchNextPage={(page) => tmdbService.getMoviesByGenre(28, page + 1)}
           />
         </FadeSection>
@@ -210,17 +209,17 @@ export const MoviesPage = () => {
         </FadeSection>
 
         <FadeSection>
-          <MovieRow 
-            title="Romance" 
-            movies={romanceMovies} 
+          <MovieRow
+            title="Romance"
+            movies={romanceMovies}
             fetchNextPage={(page) => tmdbService.getMoviesByGenre(10749, page + 1)}
           />
         </FadeSection>
 
         <FadeSection>
-          <MovieRow 
-            title="Documentaries" 
-            movies={documentaries} 
+          <MovieRow
+            title="Documentaries"
+            movies={documentaries}
             fetchNextPage={(page) => tmdbService.getMoviesByGenre(99, page + 1)}
           />
         </FadeSection>
@@ -228,20 +227,20 @@ export const MoviesPage = () => {
         <FadeSection>
           <CategoryRow title="Popular Genres" onTitleClick={() => navigate('/genres')}>
             {genresList.map(genre => (
-              <CategoryCard 
+              <CategoryCard
                 key={genre.id}
-                title={genre.name} 
-                image={genreBackdrops[genre.name]} 
-                onClick={() => navigate(`/genre/${genre.id}`)} 
+                title={genre.name}
+                image={genreBackdrops[genre.name]}
+                onClick={() => navigate(`/genre/${genre.id}`)}
               />
             ))}
           </CategoryRow>
         </FadeSection>
 
         <FadeSection>
-          <MovieRow 
-            title="Top Rated Movies" 
-            movies={topRated} 
+          <MovieRow
+            title="Top Rated Movies"
+            movies={topRated}
             fetchNextPage={(page) => tmdbService.getTopRated(page)}
           />
         </FadeSection>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { tmdbService, getImageUrl } from '../services/tmdbService';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight01Icon as ChevronRight, ArrowLeft01Icon as ChevronLeft } from 'hugeicons-react';
@@ -24,13 +24,13 @@ export const NetworksRow = () => {
   const [showLeft, setShowLeft] = useState(false);
   const [showRight, setShowRight] = useState(true);
 
-  const checkScroll = () => {
+  const checkScroll = useCallback(() => {
     if (scrollRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-      setShowLeft(scrollLeft > 10);
-      setShowRight(scrollLeft < scrollWidth - clientWidth - 10);
+      setShowLeft(scrollLeft > 6);
+      setShowRight(scrollLeft < scrollWidth - clientWidth - 6);
     }
-  };
+  }, []);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
@@ -56,13 +56,32 @@ export const NetworksRow = () => {
   }, []);
 
   useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
     checkScroll();
+    const t1 = setTimeout(checkScroll, 100);
+    const t2 = setTimeout(checkScroll, 400);
+
+    const observer = new ResizeObserver(() => {
+      checkScroll();
+    });
+    observer.observe(el);
+
+    if (el.firstElementChild) observer.observe(el.firstElementChild);
+    if (el.lastElementChild) observer.observe(el.lastElementChild);
+
     window.addEventListener('resize', checkScroll);
-    return () => window.removeEventListener('resize', checkScroll);
-  }, [networks]);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      observer.disconnect();
+      window.removeEventListener('resize', checkScroll);
+    };
+  }, [networks, checkScroll]);
 
   return (
-    <div 
+    <div
       className="py-4 md:py-6 group/row relative"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -72,8 +91,8 @@ export const NetworksRow = () => {
       </div>
 
       <div className="relative">
-        <div className={`absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-bg via-bg/20 to-transparent z-10 pointer-events-none transition-opacity duration-500 ${showLeft ? 'opacity-100' : 'opacity-0'}`} />
-        <div className={`absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-bg via-bg/20 to-transparent z-10 pointer-events-none transition-opacity duration-500 ${showRight ? 'opacity-100' : 'opacity-0'}`} />
+        <div className={`absolute inset-y-0 left-0 w-16 sm:w-24 md:w-32 lg:w-40 bg-gradient-to-r from-black via-black/80 to-transparent z-20 pointer-events-none transition-opacity duration-300 ${showLeft ? 'opacity-100' : 'opacity-0'}`} />
+        <div className={`absolute inset-y-0 right-0 w-16 sm:w-24 md:w-32 lg:w-40 bg-gradient-to-l from-black via-black/80 to-transparent z-20 pointer-events-none transition-opacity duration-300 ${showRight ? 'opacity-100' : 'opacity-0'}`} />
 
         <AnimatePresence>
           {isHovered && window.innerWidth >= 768 && (
@@ -84,9 +103,10 @@ export const NetworksRow = () => {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
                   onClick={() => scroll('left')}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 z-20 flex items-center justify-center bg-black/40 backdrop-blur-md rounded-full border border-white/10 hover:bg-black/60 transition-all group/btn"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 z-30 flex items-center justify-center btn-glass-beveled rounded-full text-white cursor-pointer"
+                  aria-label="Scroll left"
                 >
-                  <ChevronLeft className="w-6 h-6 text-white group-hover/btn:scale-110 transition-transform" />
+                  <ChevronLeft className="w-5 h-5 transition-transform group-hover:scale-110" />
                 </motion.button>
               )}
               {showRight && (
@@ -95,33 +115,34 @@ export const NetworksRow = () => {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 10 }}
                   onClick={() => scroll('right')}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 z-20 flex items-center justify-center bg-black/40 backdrop-blur-md rounded-full border border-white/10 hover:bg-black/60 transition-all group/btn"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 z-30 flex items-center justify-center btn-glass-beveled rounded-full text-white cursor-pointer"
+                  aria-label="Scroll right"
                 >
-                  <ChevronRight className="w-6 h-6 text-white group-hover/btn:scale-110 transition-transform" />
+                  <ChevronRight className="w-5 h-5 transition-transform group-hover:scale-110" />
                 </motion.button>
               )}
             </>
           )}
         </AnimatePresence>
 
-        <div 
+        <div
           ref={scrollRef}
           onScroll={checkScroll}
-          className="flex gap-3 overflow-x-auto no-scrollbar px-4 md:px-6 py-4 -my-4"
+          className="flex gap-3 overflow-x-auto no-scrollbar px-4 md:px-6 py-3"
         >
           {networks.map((network) => (
             <motion.div
               key={network.id}
               onClick={() => navigate(`/network/${network.id}`)}
-              className="flex-none w-[100px] md:w-[140px] aspect-square bg-white/5 rounded-2xl flex items-center justify-center p-4 anim-poster group overflow-hidden relative"
+              className="flex-none w-[100px] md:w-[130px] aspect-square card-glass-debossed rounded-2xl flex items-center justify-center p-4 cursor-pointer group overflow-hidden relative"
             >
               <LazyImage
                 src={getImageUrl(network.logo_path, 'w500')}
                 alt={network.name}
-                className="max-w-full max-h-full object-contain brightness-0 invert opacity-60 group-hover:opacity-100 transition-opacity drop-shadow-2xl z-10"
+                className="max-w-full max-h-full object-contain brightness-0 invert opacity-60 group-hover:opacity-100 transition-opacity drop-shadow-md z-10"
                 referrerPolicy="no-referrer"
               />
-              <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="absolute inset-0 bg-white/[0.03] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
             </motion.div>
           ))}
         </div>

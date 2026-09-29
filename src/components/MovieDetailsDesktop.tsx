@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  PlayIcon as Play, 
-  PauseIcon as Pause, 
-  Add01Icon as Plus, 
-  CheckmarkCircle02Icon as Check, 
-  ArrowRight01Icon as ChevronRight, 
-  VolumeHighIcon as Volume2, 
+import {
+  PlayIcon as Play,
+  PauseIcon as Pause,
+  Add01Icon as Plus,
+  CheckmarkCircle02Icon as Check,
+  ArrowRight01Icon as ChevronRight,
+  VolumeHighIcon as Volume2,
   VolumeOffIcon as VolumeX,
   ArrowLeft01Icon as ChevronLeft
 } from 'hugeicons-react';
@@ -16,8 +16,11 @@ import { PosterImage } from './PosterImage';
 import { VideoModal, VideoModalData } from './VideoModal';
 import { LazyImage } from './LazyImage';
 import { EpisodesSection } from './EpisodesSection';
+import { MediaMetadataSection } from './MediaMetadataSection';
 import { MpaaBadge } from './MpaaBadge';
 import { ImdbBadge } from './ImdbBadge';
+import { MovieCard } from './MovieRow';
+import { storageService } from '../services/storageService';
 
 interface MovieDetailsDesktopProps {
   details: MovieDetailsType;
@@ -44,8 +47,8 @@ interface MovieDetailsDesktopProps {
   trailer: any;
   getCertification: () => string;
   getLanguageName: (code: string) => string;
-  videoContainerRef: React.RefObject<HTMLDivElement>;
-  navigate: (path: string) => void;
+  videoContainerRef?: any;
+  navigate: (to: any) => void;
   disableStreaming?: boolean;
 }
 
@@ -79,6 +82,13 @@ export const MovieDetailsDesktop = ({
   disableStreaming
 }: MovieDetailsDesktopProps) => {
   const [activeVideo, setActiveVideo] = useState<VideoModalData | null>(null);
+  const [landscapeSetting, setLandscapeSetting] = useState(() => storageService.isLandscapePosterEnabled());
+
+  useEffect(() => {
+    const handleLandscape = () => setLandscapeSetting(storageService.isLandscapePosterEnabled());
+    window.addEventListener('landscapePosterSettingUpdated', handleLandscape);
+    return () => window.removeEventListener('landscapePosterSettingUpdated', handleLandscape);
+  }, []);
 
   const cast = details.credits?.cast || [];
   const watchLabel = disableStreaming
@@ -90,12 +100,27 @@ export const MovieDetailsDesktop = ({
       : (type === 'tv' ? `Watch Now` : 'Watch Now');
 
   return (
-    <div className="hidden md:block min-h-screen bg-bg text-white">
+    <div className="hidden md:block min-h-screen bg-black text-white relative">
 
-      {}
+      <div className="absolute top-6 left-6 lg:left-8 z-30">
+        <button
+          onClick={() => {
+            if (window.history.state && window.history.state.idx > 0) {
+              navigate(-1);
+            } else {
+              navigate('/');
+            }
+          }}
+          className="btn-glass-beveled anim-btn flex items-center gap-2 px-4 py-2 rounded-full cursor-pointer text-xs font-bold uppercase tracking-wider text-white/90 shadow-2xl"
+          aria-label="Go back"
+        >
+          <ChevronLeft className="w-4 h-4 text-white" />
+          <span>Back</span>
+        </button>
+      </div>
+
       <div className="relative w-full overflow-hidden" style={{ height: 'min(72vh, 640px)' }}>
 
-        {}
         <LazyImage
           src={getImageUrl(details.backdrop_path, 'original')}
           alt={details.title || details.name}
@@ -114,127 +139,136 @@ export const MovieDetailsDesktop = ({
           </div>
         )}
 
-        {}
         {showTrailer && (
           <div className="absolute right-8 bottom-8 flex gap-2.5 z-30">
             <button
               onClick={() => setIsPaused(!isPaused)}
-              className="w-10 h-10 bg-black/30 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-black/50 transition-all border border-white/10"
+              className="w-10 h-10 btn-glass-beveled anim-icon rounded-full flex items-center justify-center text-white cursor-pointer"
+              aria-label={isPaused ? "Play trailer" : "Pause trailer"}
             >
               {isPaused ? <Play className="w-4 h-4 text-white ml-0.5" /> : <Pause className="w-4 h-4 text-white" />}
             </button>
             <button
               onClick={() => setIsMuted(!isMuted)}
-              className="w-10 h-10 bg-black/30 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-black/50 transition-all border border-white/10"
+              className="w-10 h-10 btn-glass-beveled anim-icon rounded-full flex items-center justify-center text-white cursor-pointer"
+              aria-label={isMuted ? "Unmute trailer" : "Mute trailer"}
             >
               {isMuted ? <VolumeX className="w-4 h-4 text-white" /> : <Volume2 className="w-4 h-4 text-white" />}
             </button>
           </div>
         )}
 
-        {}
-        <div className="absolute inset-0 bg-gradient-to-r from-bg via-bg/70 to-transparent z-10" />
-        <div className="absolute inset-0 bg-gradient-to-t from-bg via-transparent to-transparent z-10" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-transparent z-10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent z-10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-10" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent z-10" />
 
-        {}
-        <div className="absolute inset-0 z-20 flex items-end px-8 pb-10 max-w-[1400px]">
-          <div className="w-full max-w-2xl">
+        <div className="absolute inset-0 z-20 flex items-end px-8 md:px-12 pb-10 max-w-[1400px]">
+          <div className="w-full max-w-2xl flex flex-col items-start">
 
-            {}
             {logo ? (
               <LazyImage
                 src={getImageUrl(logo.file_path, 'original')}
                 alt={details.title || details.name}
-                className="max-h-24 max-w-xs object-contain mb-5 drop-shadow-2xl"
+                className="max-h-20 max-w-xs object-contain mb-4 drop-shadow-[0_8px_24px_rgba(0,0,0,0.9)]"
                 referrerPolicy="no-referrer"
               />
             ) : (
-              <h1 className="text-4xl xl:text-5xl font-black mb-5 tracking-tight leading-none">
+              <h1 className="text-3xl xl:text-5xl font-black mb-4 tracking-tight leading-none text-white text-balance drop-shadow-[0_6px_20px_rgba(0,0,0,0.9)]">
                 {details.title || details.name}
               </h1>
             )}
 
-            {}
-            <div className="flex items-center gap-2.5 mb-4 flex-wrap text-sm font-semibold text-white/70">
+            <div className="flex items-center gap-2.5 mb-4 flex-wrap text-sm font-semibold text-white/90">
               <ImdbBadge rating={rating} />
               <MpaaBadge rating={getCertification()} />
-              <span className="text-white/30">·</span>
-              <span>{year}</span>
-              <span className="text-white/30">·</span>
-              <span>{type === 'tv' ? `${details.number_of_seasons} Season${details.number_of_seasons > 1 ? 's' : ''}` : duration}</span>
-              <span className="text-white/30">·</span>
-              <span>{getLanguageName(details.original_language)}</span>
+              <span className="text-white/40">•</span>
+              <span className="tabular-nums text-white/80">
+                {year}
+              </span>
+              <span className="text-white/40">•</span>
+              <span className="tabular-nums text-white/80">
+                {type === 'tv' ? `${details.number_of_seasons} Season${details.number_of_seasons > 1 ? 's' : ''}` : duration}
+              </span>
+              <span className="text-white/40">•</span>
+              <span className="text-white/80">
+                {getLanguageName(details.original_language)}
+              </span>
             </div>
 
-            {}
-            <p className="text-sm font-medium text-white/60 mb-5 leading-relaxed line-clamp-3 max-w-xl">
+            <p className="text-xs md:text-sm font-medium text-white/80 mb-4 leading-relaxed line-clamp-3 max-w-xl text-pretty drop-shadow-md">
               {details.overview}
             </p>
 
-            {}
-            <div className="flex flex-wrap gap-1.5 mb-6">
+            <div className="flex flex-wrap gap-2 mb-6">
               {details.genres.map((genre) => (
                 <button
                   key={genre.id}
                   onClick={() => navigate(`/genre/${genre.id}`)}
-                  className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-semibold text-white/60 hover:text-white hover:bg-white/10 transition-all"
+                  className="badge-glass text-xs font-semibold px-3 py-1 rounded-full text-white/85 hover:text-white cursor-pointer"
                 >
                   {genre.name}
                 </button>
               ))}
             </div>
 
-            {}
             <div className="flex items-center gap-3">
               <button
                 onClick={handleSubscribe}
-                className="btn-beveled-solid anim-btn flex items-center gap-2.5 px-8 h-11 rounded-xl font-bold text-sm"
+                className="btn-beveled-solid anim-btn flex items-center gap-2.5 px-8 h-12 rounded-2xl font-bold text-sm cursor-pointer shadow-2xl"
               >
-                <Play className="w-4 h-4 fill-current text-[#0f1014]" />
+                <Play className="w-4 h-4 fill-current text-[#09090b] translate-x-0.5" />
                 <span>{watchLabel}</span>
               </button>
               <button
                 onClick={toggleWatchlist}
                 title={isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
-                className="btn-glass-beveled anim-btn w-11 h-11 rounded-xl flex items-center justify-center"
+                className={`btn-glass-beveled anim-btn w-12 h-12 rounded-2xl flex items-center justify-center cursor-pointer ${
+                  isInWatchlist ? 'active text-accent border-white/30' : ''
+                }`}
+                aria-label="Toggle Watchlist"
               >
-                {isInWatchlist ? <Check className="w-5 h-5 text-emerald-400" /> : <Plus className="w-5 h-5" />}
+                {isInWatchlist ? <Check className="w-5 h-5 text-accent" /> : <Plus className="w-5 h-5 text-white" />}
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {}
       <div className="px-6 lg:px-8 max-w-[1400px] mx-auto">
 
-        {}
         {cast.length > 0 && (
-          <div className="py-5">
-            <div className="flex items-center gap-4 overflow-x-auto no-scrollbar">
+          <div className="py-5 border-b border-white/5">
+            <div className="flex items-center justify-between mb-3.5">
+              <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest">Top Cast</h3>
+              <span className="text-[11px] font-semibold text-white/30">{cast.length} Actors</span>
+            </div>
+            <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar overscroll-x-contain py-1 px-1 -mx-1">
               {cast.map((actor: any) => (
-                <button 
-                  key={actor.id} 
+                <button
+                  key={actor.id}
                   onClick={() => navigate(`/person/${actor.id}`)}
-                  className="flex items-center gap-2.5 shrink-0 bg-white/[0.03] border border-white/5 hover:border-white/20 hover:bg-white/5 transition-all rounded-xl p-2 pr-3.5 text-left"
+                  className="flex items-center gap-3 shrink-0 card-glass-debossed rounded-full py-1.5 pl-1.5 pr-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110 hover:border-white/30 cursor-pointer group"
                 >
-                  <div className="w-9 h-9 rounded-xl overflow-hidden bg-black/40 shrink-0">
+                  <div className="w-10 h-10 rounded-full overflow-hidden glass-debossed ring-1 ring-white/15 ring-inset shrink-0 shadow-md">
                     {actor.profile_path ? (
                       <LazyImage
                         src={getImageUrl(actor.profile_path, 'w500')}
                         alt={actor.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-xs font-bold text-white/30">
+                      <div className="w-full h-full flex items-center justify-center text-xs font-bold text-white/40 bg-white/[0.04]">
                         {actor.name[0]}
                       </div>
                     )}
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-white leading-none truncate max-w-[120px]">{actor.name}</p>
-                    <p className="text-[10px] text-white/40 mt-0.5 truncate max-w-[120px]">{actor.character}</p>
+                    <p className="text-xs font-bold text-white/95 leading-tight group-hover:text-white transition-colors truncate max-w-[130px]">
+                      {actor.name}
+                    </p>
+                    <p className="text-[10px] text-white/50 truncate max-w-[130px] font-medium leading-none mt-0.5">
+                      {actor.character}
+                    </p>
                   </div>
                 </button>
               ))}
@@ -256,61 +290,55 @@ export const MovieDetailsDesktop = ({
           </div>
         )}
 
-        {}
-        <div className="flex items-center gap-2.5 pt-6 pb-2 overflow-x-auto no-scrollbar">
-          {details.similar?.results?.length > 0 && (
-            <button
-              onClick={() => setActiveTab('more')}
-              className={`flex items-center gap-2 px-4.5 py-2 rounded-xl text-xs md:text-sm font-bold transition-all duration-150 cursor-pointer ${
-                activeTab === 'more'
-                  ? 'bg-white text-black shadow-md scale-100'
-                  : 'text-white/60 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <span>More Like This</span>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-                activeTab === 'more' ? 'bg-black/10 text-black' : 'bg-white/10 text-white/60'
-              }`}>
-                {details.similar.results.length}
-              </span>
-            </button>
-          )}
+        <div className="flex items-center gap-2 pt-6 pb-2">
+          <div className="glass-debossed p-1.5 rounded-2xl flex items-center gap-2">
+            {details.similar?.results?.length > 0 && (
+              <button
+                onClick={() => setActiveTab('more')}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all duration-200 cursor-pointer ${
+                  activeTab === 'more'
+                    ? 'btn-beveled-solid'
+                    : 'text-white/60 hover:text-white hover:bg-white/[0.04]'
+                }`}
+              >
+                <span>More Like This</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold tabular-nums ${
+                  activeTab === 'more' ? 'bg-black/15 text-black' : 'bg-white/10 text-white/60'
+                }`}>
+                  {details.similar.results.length}
+                </span>
+              </button>
+            )}
 
-          {details.videos?.results?.length > 0 && (
-            <button
-              onClick={() => setActiveTab('trailers')}
-              className={`flex items-center gap-2 px-4.5 py-2 rounded-xl text-xs md:text-sm font-bold transition-all duration-150 cursor-pointer ${
-                activeTab === 'trailers'
-                  ? 'bg-white text-black shadow-md scale-100'
-                  : 'text-white/60 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <span>Trailers & More</span>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-                activeTab === 'trailers' ? 'bg-black/10 text-black' : 'bg-white/10 text-white/60'
-              }`}>
-                {details.videos.results.length}
-              </span>
-            </button>
-          )}
+            {details.videos?.results?.length > 0 && (
+              <button
+                onClick={() => setActiveTab('trailers')}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all duration-200 cursor-pointer ${
+                  activeTab === 'trailers'
+                    ? 'btn-beveled-solid'
+                    : 'text-white/60 hover:text-white hover:bg-white/[0.04]'
+                }`}
+              >
+                <span>Trailers & More</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold tabular-nums ${
+                  activeTab === 'trailers' ? 'bg-black/15 text-black' : 'bg-white/10 text-white/60'
+                }`}>
+                  {details.videos.results.length}
+                </span>
+              </button>
+            )}
+          </div>
         </div>
 
-        {}
-        <div className="py-5 pb-24">
+        <div className="py-6 pb-24">
           {activeTab === 'more' && details.similar?.results?.length > 0 && (
-            <div className="grid grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-2.5 md:gap-3">
+            <div className={`grid ${landscapeSetting ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3 gap-5 md:gap-6' : 'grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3 md:gap-4'}`}>
               {details.similar.results.slice(0, 21).map((movie) => (
-                <div
+                <MovieCard
                   key={movie.id}
-                  className="relative aspect-[2/3] rounded-lg overflow-hidden cursor-pointer bg-white/5 hover:scale-[1.03] transition-transform duration-200"
-                  onClick={() => navigate(`/${type}/${movie.id}`)}
-                >
-                  <PosterImage
-                    src={getImageUrl(movie.poster_path)}
-                    alt={movie.title || movie.name}
-                    className="w-full h-full"
-                  />
-                </div>
+                  movie={{ ...movie, media_type: movie.media_type || type }}
+                  className="w-full"
+                />
               ))}
             </div>
           )}
@@ -350,6 +378,8 @@ export const MovieDetailsDesktop = ({
             </div>
           )}
         </div>
+
+        <MediaMetadataSection details={details} type={type} />
       </div>
 
       <VideoModal

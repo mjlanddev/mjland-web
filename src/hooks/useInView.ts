@@ -18,7 +18,7 @@ export function useInView(options: UseInViewOptions = {}) {
       if (triggerOnce) {
         if (entry.isIntersecting) {
           setInView(true);
-          observer.disconnect(); 
+          observer.disconnect();
         }
       } else {
         setInView(entry.isIntersecting);
@@ -27,7 +27,7 @@ export function useInView(options: UseInViewOptions = {}) {
 
     observer.observe(element);
     return () => observer.disconnect();
-  
+
   }, [rootMargin, triggerOnce]);
 
   return { ref, inView };

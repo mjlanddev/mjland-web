@@ -51,7 +51,7 @@ export const StudioDetails = () => {
           genres.map(async (genre) => {
             const movies = await tmdbService.getMoviesByStudio(studioId, genre.id);
             const tvShows = await tmdbService.getTVByStudio(studioId, genre.id);
-            
+
             const combined = [...movies, ...tvShows]
               .sort((a, b) => b.vote_average - a.vote_average)
               .slice(0, 20);
@@ -86,20 +86,20 @@ export const StudioDetails = () => {
   if (!studio) return null;
 
   return (
-    <div className="min-h-screen bg-bg text-white">
+    <div className="min-h-screen bg-black text-white">
       <div className="relative h-[50vh] flex flex-col items-center justify-center pt-20 overflow-hidden">
         <div className="absolute inset-0">
           {backdrop && (
-            <LazyImage 
-              src={backdrop} 
-              alt="" 
+            <LazyImage
+              src={backdrop}
+              alt=""
               className="w-full h-full object-cover grayscale opacity-30"
               referrerPolicy="no-referrer"
             />
           )}
-          <div className="absolute inset-0 bg-gradient-to-b from-bg/20 via-bg/60 to-bg" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/60 to-black" />
         </div>
-        
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -109,7 +109,7 @@ export const StudioDetails = () => {
             <LazyImage
               src={getImageUrl(studio.logo_path, 'original')}
               alt={studio.name}
-              className="h-32 md:h-48 object-contain mb-8 brightness-0 invert drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]"
+              className="h-32 md:h-48 object-contain mb-8 brightness-0 invert drop-shadow-md"
               referrerPolicy="no-referrer"
             />
           ) : (

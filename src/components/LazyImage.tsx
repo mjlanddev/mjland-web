@@ -6,12 +6,12 @@ interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   fallbackSrc?: string;
 }
 
-export const LazyImage: React.FC<LazyImageProps> = ({ 
-  className = '', 
+export const LazyImage: React.FC<LazyImageProps> = ({
+  className = '',
   src,
   fallbackSrc,
   loading = 'lazy',
-  ...props 
+  ...props
 }) => {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);

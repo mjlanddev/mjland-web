@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft01Icon as ChevronLeft, ArrowRight01Icon as ChevronRight } from 'hugeicons-react';
 import { PosterImage } from './PosterImage';
@@ -14,22 +14,21 @@ interface CategoryCardProps {
 export const CategoryCard: React.FC<CategoryCardProps> = ({ title, subtitle, image, onClick, className }) => {
   return (
     <motion.div
-      whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.98 }}
-      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-      className={`relative flex-none aspect-video rounded-xl overflow-hidden cursor-pointer group shadow-lg border border-white/5 hover:border-white/20 transition-all ${className || 'w-[150px] sm:w-[170px] md:w-52'}`}
+      transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+      className={`relative flex-none aspect-video rounded-2xl overflow-hidden cursor-pointer group card-glass-debossed ${className || 'w-[150px] sm:w-[170px] md:w-52'}`}
       onClick={onClick}
     >
       <PosterImage
         src={image}
         alt={title}
-        className="w-full h-full object-cover transition-transform duration-200 ease-out"
+        className="w-full h-full object-cover transition-all duration-300 ease-out group-hover:brightness-105"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent flex flex-col justify-end p-2.5 md:p-3.5 group-hover:from-black/95 transition-all">
+      <div className="absolute inset-0 bg-gradient-to-t from-[#09090b]/95 via-[#09090b]/35 to-transparent flex flex-col justify-end p-3 md:p-4 group-hover:from-[#09090b] transition-all">
         <h3 className="text-xs sm:text-sm md:text-base font-black tracking-tight text-white group-hover:text-accent transition-colors drop-shadow-md">{title}</h3>
         {subtitle && <p className="text-[9px] md:text-[11px] text-white/50 truncate font-medium mt-0.5">{subtitle}</p>}
       </div>
-      <div className="absolute inset-0 ring-1 ring-inset ring-white/10 group-hover:ring-white/25 rounded-xl pointer-events-none transition-all" />
+      <div className="absolute inset-0 ring-1 ring-inset ring-white/10 group-hover:ring-white/25 rounded-2xl pointer-events-none transition-all" />
     </motion.div>
   );
 };
@@ -40,13 +39,13 @@ export const CategoryRow = ({ title, children, onTitleClick }: { title: string; 
   const [showLeft, setShowLeft] = useState(false);
   const [showRight, setShowRight] = useState(true);
 
-  const checkScroll = () => {
+  const checkScroll = useCallback(() => {
     if (scrollRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-      setShowLeft(scrollLeft > 10);
-      setShowRight(scrollLeft < scrollWidth - clientWidth - 10);
+      setShowLeft(scrollLeft > 6);
+      setShowRight(scrollLeft < scrollWidth - clientWidth - 6);
     }
-  };
+  }, []);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
@@ -65,19 +64,38 @@ export const CategoryRow = ({ title, children, onTitleClick }: { title: string; 
   };
 
   useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
     checkScroll();
+    const t1 = setTimeout(checkScroll, 100);
+    const t2 = setTimeout(checkScroll, 400);
+
+    const observer = new ResizeObserver(() => {
+      checkScroll();
+    });
+    observer.observe(el);
+
+    if (el.firstElementChild) observer.observe(el.firstElementChild);
+    if (el.lastElementChild) observer.observe(el.lastElementChild);
+
     window.addEventListener('resize', checkScroll);
-    return () => window.removeEventListener('resize', checkScroll);
-  }, []);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      observer.disconnect();
+      window.removeEventListener('resize', checkScroll);
+    };
+  }, [children, checkScroll]);
 
   return (
-    <div 
+    <div
       className="py-4 md:py-6 group/row relative"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex items-center justify-between mb-3 px-4 md:px-6">
-        <h2 
+        <h2
           className={`text-xl md:text-2xl font-bold text-white tracking-tight ${onTitleClick ? 'cursor-pointer hover:text-accent transition-colors flex items-center gap-2 group/title' : ''}`}
           onClick={onTitleClick}
         >
@@ -87,8 +105,8 @@ export const CategoryRow = ({ title, children, onTitleClick }: { title: string; 
       </div>
 
       <div className="relative">
-        <div className={`absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-bg via-bg/20 to-transparent z-10 pointer-events-none transition-opacity duration-500 ${showLeft ? 'opacity-100' : 'opacity-0'}`} />
-        <div className={`absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-bg via-bg/20 to-transparent z-10 pointer-events-none transition-opacity duration-500 ${showRight ? 'opacity-100' : 'opacity-0'}`} />
+        <div className={`absolute inset-y-0 left-0 w-16 sm:w-24 md:w-32 lg:w-40 bg-gradient-to-r from-black via-black/80 to-transparent z-20 pointer-events-none transition-opacity duration-300 ${showLeft ? 'opacity-100' : 'opacity-0'}`} />
+        <div className={`absolute inset-y-0 right-0 w-16 sm:w-24 md:w-32 lg:w-40 bg-gradient-to-l from-black via-black/80 to-transparent z-20 pointer-events-none transition-opacity duration-300 ${showRight ? 'opacity-100' : 'opacity-0'}`} />
 
         <AnimatePresence>
           {isHovered && window.innerWidth >= 768 && (
@@ -99,7 +117,8 @@ export const CategoryRow = ({ title, children, onTitleClick }: { title: string; 
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
                   onClick={() => scroll('left')}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 z-20 flex items-center justify-center bg-black/40 backdrop-blur-md rounded-full border border-white/10 hover:bg-black/60 transition-all group/btn"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 z-30 flex items-center justify-center btn-glass-beveled rounded-full text-white shadow-xl group/btn"
+                  aria-label="Scroll left"
                 >
                   <ChevronLeft className="w-6 h-6 text-white group-hover/btn:scale-110 transition-transform" />
                 </motion.button>
@@ -110,7 +129,8 @@ export const CategoryRow = ({ title, children, onTitleClick }: { title: string; 
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 10 }}
                   onClick={() => scroll('right')}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 z-20 flex items-center justify-center bg-black/40 backdrop-blur-md rounded-full border border-white/10 hover:bg-black/60 transition-all group/btn"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 z-30 flex items-center justify-center btn-glass-beveled rounded-full text-white shadow-xl group/btn"
+                  aria-label="Scroll right"
                 >
                   <ChevronRight className="w-6 h-6 text-white group-hover/btn:scale-110 transition-transform" />
                 </motion.button>
@@ -119,11 +139,11 @@ export const CategoryRow = ({ title, children, onTitleClick }: { title: string; 
           )}
         </AnimatePresence>
 
-        <div 
+        <div
           ref={scrollRef}
           onScroll={checkScroll}
           onWheel={onWheelCapture}
-          className="flex gap-3 md:gap-4 overflow-x-auto overscroll-x-contain no-scrollbar px-4 md:px-6 py-4 -my-4"
+          className="flex gap-3 md:gap-4 overflow-x-auto overscroll-x-contain no-scrollbar px-4 md:px-6 py-3"
         >
           {children}
         </div>
@@ -131,4 +151,3 @@ export const CategoryRow = ({ title, children, onTitleClick }: { title: string; 
     </div>
   );
 };
-
